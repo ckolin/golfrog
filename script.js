@@ -14,7 +14,9 @@ const player = {
     bounce: 1,
 };
 
-const ground = (x) => 0.8 - 0.05 * Math.sin(10 * x);
+const entities = [player];
+
+const ground = (x) => 0.8 - 0.05 * Math.sin(10 * x) + 0.05 * Math.sin(2 * x);
 
 const draw = () => {
     update();
@@ -26,24 +28,40 @@ const draw = () => {
     ctx.save();
     ctx.scale(canvas.width, canvas.height);
 
-    // Draw ground
-    ctx.beginPath();
-    const steps = 100;
-    for (let i = 0; i <= steps; i++) {
-        const x = i / steps;
-        ctx.lineTo(x, ground(x));
-    }
-    ctx.lineWidth = 0.01;
-    ctx.stroke();
-
-    // Draw player
-    ctx.fillStyle = "green";
-    ctx.fillRect(player.pos.x - 0.01, player.pos.y - 0.01, 0.02, 0.02);
-
-    ctx.restore();
-
     // Debug overlay
     if (location.hash === "#debug") {
+        ctx.save();
+        ctx.lineWidth = 0.01;
+        ctx.globalAlpha = 0.3;
+        // Ground
+        ctx.beginPath();
+        const steps = 100;
+        for (let i = 0; i <= steps; i++) {
+            const x = i / steps;
+            ctx.lineTo(x, ground(x));
+        }
+        ctx.strokeStyle = "#00f";
+        ctx.stroke();
+        // Origin
+        for (let entity of entities.filter(e => e.pos)) {
+            ctx.fillStyle = "#f00";
+            ctx.fillRect(
+                entity.pos.x - ctx.lineWidth,
+                entity.pos.y - ctx.lineWidth,
+                2 * ctx.lineWidth,
+                2 * ctx.lineWidth);
+        }
+        // Velocity vector
+        for (let entity of entities.filter(e => e.vel)) {
+            const end = Vec.add(entity.pos, entity.vel);
+            ctx.beginPath();
+            ctx.moveTo(entity.pos.x, entity.pos.y);
+            ctx.lineTo(end.x, end.y);
+            ctx.strokeStyle = "#0f0";
+            ctx.stroke();
+        }
+        ctx.restore();
+        // Debug object
         let pre = document.getElementById("dbg");
         if (pre == null) {
             pre = document.createElement("pre");
@@ -56,6 +74,9 @@ const draw = () => {
         }
         pre.innerText = JSON.stringify(dbg, (k, v) => v.toFixed == null ? v : Number(v.toFixed(3)), 2);
     }
+
+    ctx.restore();
+
     requestAnimationFrame(draw);
 };
 
@@ -64,8 +85,6 @@ const update = () => {
     const now = performance.now();
     const dt = (now - last) / 1000;
     last = now;
-
-    const entities = [player];
 
     // Gravity
     for (const e of entities.filter(e => e.gravity)) {
