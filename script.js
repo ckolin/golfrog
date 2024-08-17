@@ -31,11 +31,23 @@ const draw = () => {
 
     canvas.width = canvas.height = 600;
     ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.save();
     ctx.scale(canvas.width, canvas.height);
+
+    // Player shadow
+    ctx.save();
+    const y = ground(player.pos.x);
+    const d = y - player.pos.y;
+    const r = 0.5 + Math.exp(d);
+    ctx.beginPath();
+    ctx.ellipse(player.pos.x, y, 0.02 * r, 0.01 * r, 0, 0, 2 * Math.PI);
+    ctx.fillStyle = "#000";
+    ctx.globalAlpha = 0.25 * Math.exp(-2 * d);
+    ctx.fill();
+    ctx.restore();
 
     // Debug overlay
     if (location.hash === "#debug") {
