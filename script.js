@@ -7,7 +7,7 @@ const ctx = canvas.getContext("2d", {
 const dbg = {};
 
 const player = {
-    pos: { x: 0.1, y: 0.2 },
+    pos: { x: 0.1, y: 0.5 },
     vel: Vec.zero(),
     damping: 0.3,
     gravity: 1,
@@ -125,6 +125,7 @@ const update = () => {
     for (const e of entities.filter(e => e.bounce && !e.grounded)) {
         if (e.pos.y >= ground(e.pos.x)) {
             e.pos.y = ground(e.pos.x);
+            e.vel.x *= e.bounce;
             e.vel.y *= -e.bounce;
             if (Vec.length(e.vel) < 1e-2) {
                 e.grounded = true;
