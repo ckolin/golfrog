@@ -1,7 +1,7 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d", {
     alpha: false,
-    desynchronized: true
+    desynchronized: true,
 });
 
 const dbg = {};
@@ -30,6 +30,7 @@ const draw = () => {
     update();
 
     canvas.width = canvas.height = 600;
+    ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
