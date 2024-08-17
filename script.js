@@ -7,7 +7,7 @@ const ctx = canvas.getContext("2d", {
 const dbg = {};
 
 const player = {
-    pos: { x: 0.1, y: 0.5 },
+    pos: { x: 0.1, y: 0.2 },
     vel: Vec.zero(),
     damping: 0.3,
     gravity: 1,
@@ -100,9 +100,9 @@ const update = () => {
     last = now;
 
     // Detect drag
-    if (player.grounded && !input.primary) {
+    if (!input.primary) {
         const drag = Vec.subtract(input.dragEnd, input.dragStart);
-        if (Vec.length(drag) > 0.02) {
+        if (player.grounded && Vec.length(drag) > 0.02) {
             player.vel = Vec.add(player.vel, Vec.scale(drag, -player.jump));
             player.grounded = false;
         }
@@ -123,13 +123,12 @@ const update = () => {
     }
     // Bounce off ground
     for (const e of entities.filter(e => e.bounce && !e.grounded)) {
-        const elev = e.pos.y - ground(e.pos.x);
-        if (elev < 0) {
+        if (e.pos.y >= ground(e.pos.x)) {
             e.pos.y = ground(e.pos.x);
             e.vel.y *= -e.bounce;
-        }
-        if (Vec.length(e.vel) < 1e-2) {
-            e.grounded = true;
+            if (Vec.length(e.vel) < 1e-2) {
+                e.grounded = true;
+            }
         }
     }
 
