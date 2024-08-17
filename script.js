@@ -10,7 +10,7 @@ const player = {
     pos: { x: 0.1, y: 0.5 },
     vel: Vec.zero(),
     damping: 0.3,
-    gravity: 1,
+    gravity: 0.8,
     bounce: 0.5,
     grounded: false,
     jump: 10,
