@@ -9,11 +9,15 @@ const dbg = {};
 const player = {
     pos: { x: 0.1, y: 0.5 },
     vel: Vec.zero(),
+    rot: 0,
     damping: 0.3,
     gravity: 0.8,
     bounce: 0.5,
     grounded: false,
     jump: 10,
+    sprite: {
+        img: "frog",
+    },
 };
 
 const entities = [player];
@@ -48,6 +52,24 @@ const draw = () => {
     ctx.globalAlpha = 0.25 * Math.exp(-2 * d);
     ctx.fill();
     ctx.restore();
+
+    // Sprites
+    for (const e of entities.filter(e => e.sprite)) {
+        ctx.save();
+        ctx.translate(e.pos.x, e.pos.y);
+        ctx.rotate(e.rot);
+        const img = document.getElementById(e.sprite.img);
+        let frame = 0;
+        let frameWidth = img.naturalWidth;
+        if (e.sprite.animation) {
+            frame = Math.floor(e.age / e.sprite.animation.delay) % e.sprite.animation.frames;
+            frameWidth = img.naturalWidth / e.sprite.animation.frames;
+        }
+        const size = Vec.scale({ x: 1, y: 1 }, e.sprite.scale ?? 0.1);
+        ctx.translate(-size.x / 2, -size.y / 2); // Center image
+        ctx.drawImage(img, frameWidth * frame, 0, frameWidth, img.naturalHeight, 0, 0, size.x, size.y);
+        ctx.restore();
+    }
 
     // Debug overlay
     if (location.hash === "#debug") {

@@ -5,6 +5,10 @@ body {
 	overflow: hidden;
 }
 
+img {
+	display: none;
+}
+
 canvas {
 	border: 1px solid black;
 }
