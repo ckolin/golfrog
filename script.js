@@ -49,7 +49,7 @@ const draw = () => {
     const d = y - player.pos.y;
     const r = 0.5 + Math.exp(d);
     ctx.beginPath();
-    ctx.ellipse(player.pos.x, y, 0.02 * r, 0.01 * r, 0, 0, 2 * Math.PI);
+    ctx.ellipse(player.pos.x, y + 0.05, 0.03 * r, 0.01 * r, 0, 0, 2 * Math.PI);
     ctx.fillStyle = "#000";
     ctx.globalAlpha = 0.25 * Math.exp(-2 * d);
     ctx.fill();
