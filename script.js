@@ -12,8 +12,10 @@ const player = {
     rot: 0,
     damping: 0.3,
     gravity: 0.8,
-    bounce: 0.5,
-    grounded: false,
+    collision: {
+        bounce: 0,
+        friction: 1e-20,
+    },
     jump: 10,
     sprite: {
         img: "frog",
@@ -137,15 +139,16 @@ const update = () => {
     // Detect drag
     if (!input.primary) {
         const drag = Vec.subtract(input.dragEnd, input.dragStart);
-        if (player.grounded && Vec.length(drag) > 0.02) {
+        const grounded = player.pos.y >= ground(player.pos.x)
+            && Vec.length(player.vel) < 1e-2;
+        if (grounded && Vec.length(drag) > 0.02) {
             player.vel = Vec.add(player.vel, Vec.scale(drag, -player.jump));
-            player.grounded = false;
         }
         input.dragStart = input.dragEnd = Vec.zero();
     }
 
     // Gravity
-    for (const e of entities.filter(e => e.gravity && !e.grounded)) {
+    for (const e of entities.filter(e => e.gravity)) {
         e.vel = Vec.add(e.vel, { x: 0, y: e.gravity * dt });
     }
     // Velocity
@@ -154,17 +157,17 @@ const update = () => {
     }
     // Damping
     for (const e of entities.filter(e => e.damping)) {
-        e.vel = Vec.scale(e.vel, Math.pow(e.damping, dt));
+        e.vel = Vec.scale(e.vel, e.damping ** dt);
     }
-    // Bounce off ground
-    for (const e of entities.filter(e => e.bounce && !e.grounded)) {
-        if (e.pos.y >= ground(e.pos.x)) {
-            e.pos.y = ground(e.pos.x);
-            e.vel.x *= e.bounce;
-            e.vel.y *= -e.bounce;
-            if (Vec.length(e.vel) < 1e-2) {
-                e.grounded = true;
-            }
+    // Ground collision
+    for (const e of entities.filter(e => e.collision)) {
+        const g = ground(e.pos.x);
+        if (e.pos.y > g) {
+            e.pos.y = g;
+            e.vel.y *= -e.collision.bounce;
+        }
+        if (Math.abs(e.pos.y - g) < 1e-3) {
+            e.vel.x *= e.collision.friction ** dt;
         }
     }
 
