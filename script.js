@@ -81,18 +81,21 @@ const draw = () => {
     }
 
     // Drag trajectory
-    ctx.save();
-    ctx.beginPath();
-    const drag = Vec.subtract(input.dragStart, input.dragEnd);
-    const end = Vec.add(player.pos, drag);
-    ctx.moveTo(player.pos.x, player.pos.y);
-    ctx.lineTo(end.x, end.y);
-    ctx.lineWidth = 0.05 * Math.exp(-2 * Vec.length(drag));
-    ctx.globalAlpha = 0.5 * (1 - Math.exp(-10 * Vec.length(drag)));
-    ctx.strokeStyle = "#000";
-    ctx.setLineDash([0.01, 0.01]);
-    ctx.stroke();
-    ctx.restore();
+    {
+        ctx.save();
+        ctx.beginPath();
+        let drag = Vec.subtract(input.dragStart, input.dragEnd);
+        const len = Vec.length(drag);
+        const end = Vec.add(player.pos, drag);
+        ctx.moveTo(player.pos.x, player.pos.y);
+        ctx.lineTo(end.x, end.y);
+        ctx.lineWidth = 0.01 + 0.05 * (1 - Math.exp(-5 * len));
+        ctx.globalAlpha = 0.5 * Math.exp(-3 * len);
+        ctx.strokeStyle = "#000";
+        ctx.setLineDash([0.01, 0.01]);
+        ctx.stroke();
+        ctx.restore();
+    }
 
     // Sprite
     for (const e of entities.filter(e => e.sprite)) {
