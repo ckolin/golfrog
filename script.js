@@ -52,6 +52,18 @@ const draw = () => {
     ctx.save();
     ctx.scale(canvas.width, canvas.height);
 
+    // Ground
+    ctx.beginPath();
+    const steps = 10;
+    for (let i = 0; i <= steps; i++) {
+        const x = i / steps;
+        ctx.lineTo(x, ground(x));
+    }
+    ctx.lineTo(1, 1);
+    ctx.lineTo(0, 1);
+    ctx.fillStyle = "#c0cbdc";
+    ctx.fill();
+
     // Shadow
     for (const e of entities.filter(e => e.shadow)) {
         ctx.save();
