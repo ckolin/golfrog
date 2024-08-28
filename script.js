@@ -24,7 +24,9 @@ const player = {
 };
 
 const flag = {
-    pos: { x: 0.9, y: 0.825 },
+    pos: Vec.zero(),
+    x: 0.9,
+    phase: 0,
     sprite: {
         img: "flag",
     },
@@ -172,6 +174,10 @@ const update = () => {
     const now = performance.now();
     const dt = (now - last) / 1000;
     last = now;
+
+    // Flag position
+    flag.phase += 2 * dt;
+    flag.pos = { x: flag.x, y: ground(flag.x) + 1e-3 * Math.sin(flag.phase) };
 
     // Detect drag
     if (!input.primary) {
