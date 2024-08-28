@@ -20,7 +20,7 @@ const player = {
     sprite: {
         img: "frog",
     },
-    shadow: { x: 0.03, y: 0.01 },
+    shadow: 0.03,
 };
 
 const flag = {
@@ -28,7 +28,7 @@ const flag = {
     sprite: {
         img: "flag",
     },
-    shadow: { x: 0.02, y: 0.008 },
+    shadow: 0.02,
 };
 
 const entities = [player, flag];
@@ -58,9 +58,8 @@ const draw = () => {
         const y = ground(e.pos.x);
         const d = y - e.pos.y;
         const r = 0.5 + Math.exp(d);
-        const s = Vec.scale(e.shadow, r);
         ctx.beginPath();
-        ctx.ellipse(e.pos.x, y + 0.05, s.x, s.y, 0, 0, 2 * Math.PI);
+        ctx.ellipse(e.pos.x, y + 0.05, e.shadow * r, e.shadow * r / 3, 0, 0, 2 * Math.PI);
         ctx.fillStyle = "#000";
         ctx.globalAlpha = 0.25 * Math.exp(-2 * d);
         ctx.fill();
