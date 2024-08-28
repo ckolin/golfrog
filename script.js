@@ -33,7 +33,7 @@ const flag = {
     shadow: 0.01,
 };
 
-const entities = [player, flag];
+const entities = [flag, player];
 
 const ground = (x) => 0.8 - 0.05 * Math.sin(10 * x) + 0.05 * Math.sin(2 * x);
 
