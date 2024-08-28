@@ -20,9 +20,18 @@ const player = {
     sprite: {
         img: "frog",
     },
+    shadow: { x: 0.03, y: 0.01 },
 };
 
-const entities = [player];
+const flag = {
+    pos: { x: 0.9, y: 0.825 },
+    sprite: {
+        img: "flag",
+    },
+    shadow: { x: 0.02, y: 0.008 },
+};
+
+const entities = [player, flag];
 
 const ground = (x) => 0.8 - 0.05 * Math.sin(10 * x) + 0.05 * Math.sin(2 * x);
 
@@ -43,19 +52,22 @@ const draw = () => {
     ctx.save();
     ctx.scale(canvas.width, canvas.height);
 
-    // Player shadow
-    ctx.save();
-    const y = ground(player.pos.x);
-    const d = y - player.pos.y;
-    const r = 0.5 + Math.exp(d);
-    ctx.beginPath();
-    ctx.ellipse(player.pos.x, y + 0.05, 0.03 * r, 0.01 * r, 0, 0, 2 * Math.PI);
-    ctx.fillStyle = "#000";
-    ctx.globalAlpha = 0.25 * Math.exp(-2 * d);
-    ctx.fill();
-    ctx.restore();
+    // Shadow
+    for (const e of entities.filter(e => e.shadow)) {
+        ctx.save();
+        const y = ground(e.pos.x);
+        const d = y - e.pos.y;
+        const r = 0.5 + Math.exp(d);
+        const s = Vec.scale(e.shadow, r);
+        ctx.beginPath();
+        ctx.ellipse(e.pos.x, y + 0.05, s.x, s.y, 0, 0, 2 * Math.PI);
+        ctx.fillStyle = "#000";
+        ctx.globalAlpha = 0.25 * Math.exp(-2 * d);
+        ctx.fill();
+        ctx.restore();
+    }
 
-    // Sprites
+    // Sprite
     for (const e of entities.filter(e => e.sprite)) {
         ctx.save();
         ctx.translate(e.pos.x, e.pos.y);
