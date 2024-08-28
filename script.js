@@ -28,7 +28,7 @@ const flag = {
     sprite: {
         img: "flag",
     },
-    shadow: 0.02,
+    shadow: 0.01,
 };
 
 const entities = [player, flag];
@@ -44,7 +44,7 @@ const input = {
 const draw = () => {
     update();
 
-    canvas.width = canvas.height = 600;
+    canvas.width = canvas.height = 150;
     ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
