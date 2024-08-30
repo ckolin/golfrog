@@ -55,16 +55,18 @@ const draw = () => {
     ctx.scale(canvas.width, canvas.height);
 
     // Ground
-    ctx.beginPath();
-    const steps = 10;
-    for (let i = 0; i <= steps; i++) {
-        const x = i / steps;
-        ctx.lineTo(x, ground(x));
+    {
+        ctx.beginPath();
+        const steps = 10;
+        for (let i = 0; i <= steps; i++) {
+            const x = i / steps;
+            ctx.lineTo(x, ground(x));
+        }
+        ctx.lineTo(1, 1);
+        ctx.lineTo(0, 1);
+        ctx.fillStyle = "#c0cbdc";
+        ctx.fill();
     }
-    ctx.lineTo(1, 1);
-    ctx.lineTo(0, 1);
-    ctx.fillStyle = "#c0cbdc";
-    ctx.fill();
 
     // Shadow
     for (const e of entities.filter(e => e.shadow)) {
@@ -84,7 +86,7 @@ const draw = () => {
     {
         ctx.save();
         ctx.beginPath();
-        let drag = Vec.subtract(input.dragStart, input.dragEnd);
+        let drag = Vec.subtract(input.dragEnd, input.dragStart);
         const len = Vec.length(drag);
         const end = Vec.add(player.pos, drag);
         ctx.moveTo(player.pos.x, player.pos.y);
@@ -184,7 +186,7 @@ const update = () => {
 
     // Detect drag
     if (!input.primary) {
-        const drag = Vec.subtract(input.dragEnd, input.dragStart);
+        const drag = Vec.subtract(input.dragStart, input.dragEnd);
         const grounded = player.pos.y >= ground(player.pos.x)
             && Vec.length(player.vel) < 1e-2;
         if (grounded && Vec.length(drag) > 0.02) {
