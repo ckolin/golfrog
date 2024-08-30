@@ -19,6 +19,7 @@ const player = {
     jump: 5,
     sprite: {
         img: "frog",
+        frames: 2,
     },
     shadow: 0.03,
 };
@@ -26,7 +27,7 @@ const player = {
 const flag = {
     pos: Vec.zero(),
     x: 0.9,
-    phase: 0,
+    age: 0,
     sprite: {
         img: "flag",
     },
@@ -46,7 +47,7 @@ const input = {
 const draw = () => {
     update();
 
-    canvas.width = canvas.height = 150;
+    canvas.width = canvas.height = 500;
     ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -105,12 +106,12 @@ const draw = () => {
         ctx.translate(e.pos.x, e.pos.y);
         ctx.rotate(e.rot);
         const img = document.getElementById(e.sprite.img);
-        let frame = 0;
-        let frameWidth = img.naturalWidth;
-        if (e.sprite.animation) {
-            frame = Math.floor(e.age / e.sprite.animation.delay) % e.sprite.animation.frames;
-            frameWidth = img.naturalWidth / e.sprite.animation.frames;
-        }
+        const frameWidth = e.sprite.frames ?
+            img.naturalWidth / e.sprite.frames
+            : img.naturalWidth;
+        const frame = e.sprite.delay ?
+            Math.floor(e.age / e.sprite.delay) % e.sprite.frames
+            : e.sprite.frame ?? 0;
         const size = Vec.scale({ x: 1, y: 1 }, e.sprite.scale ?? 0.1);
         ctx.translate(-size.x / 2, -size.y / 2); // Center image
         ctx.drawImage(img, frameWidth * frame, 0, frameWidth, img.naturalHeight, 0, 0, size.x, size.y);
@@ -181,20 +182,27 @@ const update = () => {
     last = now;
 
     // Flag position
-    flag.phase += 2 * dt;
-    flag.pos = { x: flag.x, y: ground(flag.x) + 1e-3 * Math.sin(flag.phase) };
+    flag.pos = { x: flag.x, y: ground(flag.x) + 1e-3 * Math.sin(2 * flag.age) };
+
+    const grounded = player.pos.y >= ground(player.pos.x)
+        && Vec.length(player.vel) < 1e-2;
+
+    // Player animation
+    player.sprite.frame = grounded ? 0 : 1;
 
     // Detect drag
     if (!input.primary) {
         const drag = Vec.subtract(input.dragStart, input.dragEnd);
-        const grounded = player.pos.y >= ground(player.pos.x)
-            && Vec.length(player.vel) < 1e-2;
         if (grounded && Vec.length(drag) > 0.02) {
             player.vel = Vec.add(player.vel, Vec.scale(drag, -player.jump));
         }
         input.dragStart = input.dragEnd = Vec.zero();
     }
 
+    // Age
+    for (const e of entities.filter(e => e.age)) {
+        e.age += dt;
+    }
     // Gravity
     for (const e of entities.filter(e => e.gravity)) {
         e.vel = Vec.add(e.vel, { x: 0, y: e.gravity * dt });
