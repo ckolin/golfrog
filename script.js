@@ -20,22 +20,23 @@ const player = {
     sprite: {
         img: "frog",
         frames: 2,
+        offset: { x: 0, y: -.04 },
     },
-    shadow: 0.03,
+    shadow: 0.025,
 };
 
 const flag = {
-    pos: Vec.zero(),
-    x: 0.9,
+    pos: { x: 0.9, y: 0 },
+    stick: true,
     age: 0,
     sprite: {
         img: "flag",
+        offset: { x: 0, y: -.04 },
     },
     shadow: 0.01,
 };
 
-const entities = [flag, player];
-
+let entities = [flag, player];
 const ground = (x) => 0.8 - 0.05 * Math.sin(10 * x) + 0.05 * Math.sin(2 * x);
 
 const input = {
@@ -47,7 +48,7 @@ const input = {
 const draw = () => {
     update();
 
-    canvas.width = canvas.height = 500;
+    canvas.width = canvas.height = 512;
     ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -58,27 +59,30 @@ const draw = () => {
     // Ground
     {
         ctx.beginPath();
-        const steps = 10;
+        const steps = 100;
         for (let i = 0; i <= steps; i++) {
             const x = i / steps;
             ctx.lineTo(x, ground(x));
         }
+        ctx.lineWidth = 0.04;
+        ctx.strokeStyle = "#8b9bb4";
+        ctx.stroke();
         ctx.lineTo(1, 1);
         ctx.lineTo(0, 1);
         ctx.fillStyle = "#c0cbdc";
         ctx.fill();
     }
 
-    // Shadow
+    // Shadows
     for (const e of entities.filter(e => e.shadow)) {
         ctx.save();
         const y = ground(e.pos.x);
         const d = y - e.pos.y;
         const r = 0.5 + Math.exp(d);
         ctx.beginPath();
-        ctx.ellipse(e.pos.x, y + 0.05, e.shadow * r, e.shadow * r / 3, 0, 0, 2 * Math.PI);
+        ctx.ellipse(e.pos.x, y + 0.01, e.shadow * r, e.shadow * r / 3, 0, 0, 2 * Math.PI);
         ctx.fillStyle = "#000";
-        ctx.globalAlpha = 0.25 * Math.exp(-2 * d);
+        ctx.globalAlpha = 0.2 * Math.exp(-2 * d);
         ctx.fill();
         ctx.restore();
     }
@@ -89,10 +93,11 @@ const draw = () => {
         ctx.beginPath();
         let drag = Vec.subtract(input.dragEnd, input.dragStart);
         const len = Vec.length(drag);
-        const end = Vec.add(player.pos, drag);
-        ctx.moveTo(player.pos.x, player.pos.y);
+        const pos = Vec.add(player.pos, player.sprite.offset);
+        const end = Vec.add(pos, drag);
+        ctx.moveTo(pos.x, pos.y);
         ctx.lineTo(end.x, end.y);
-        ctx.lineWidth = 0.01 + 0.05 * (1 - Math.exp(-5 * len));
+        ctx.lineWidth = 0.05 * (1 - Math.exp(-5 * len));
         ctx.globalAlpha = 0.5 * Math.exp(-3 * len);
         ctx.strokeStyle = "#000";
         ctx.setLineDash([0.01, 0.01]);
@@ -100,11 +105,12 @@ const draw = () => {
         ctx.restore();
     }
 
-    // Sprite
+    // Sprites
     for (const e of entities.filter(e => e.sprite)) {
         ctx.save();
         ctx.translate(e.pos.x, e.pos.y);
         ctx.rotate(e.rot);
+        ctx.translate(e.sprite.offset.x, e.sprite.offset.y);
         const img = document.getElementById(e.sprite.img);
         const frameWidth = e.sprite.frames ?
             img.naturalWidth / e.sprite.frames
@@ -118,11 +124,23 @@ const draw = () => {
         ctx.restore();
     }
 
+    // Shapes
+    for (const e of entities.filter(e => e.shape)) {
+        ctx.save();
+        ctx.translate(e.pos.x, e.pos.y);
+        ctx.rotate(e.rot);
+        const s = e.shape.size;
+        ctx.fillStyle = e.shape.color;
+        ctx.globalAlpha = 1 - (e.age / e.ttl) ** 4;
+        ctx.fillRect(-s / 2, -s / 2, s, s);
+        ctx.restore();
+    }
+
     // Debug overlay
     if (location.hash === "#debug") {
         ctx.save();
-        ctx.lineWidth = 0.01;
-        ctx.globalAlpha = 0.3;
+        ctx.lineWidth = 0.005;
+        ctx.globalAlpha = 0.5;
         // Drag
         ctx.beginPath();
         ctx.moveTo(input.dragStart.x, input.dragStart.y);
@@ -148,7 +166,7 @@ const draw = () => {
         }
         // Velocity vector
         for (let entity of entities.filter(e => e.vel)) {
-            const end = Vec.add(entity.pos, entity.vel);
+            const end = Vec.add(entity.pos, Vec.scale(entity.vel, 0.1));
             ctx.beginPath();
             ctx.moveTo(entity.pos.x, entity.pos.y);
             ctx.lineTo(end.x, end.y);
@@ -181,14 +199,41 @@ const update = () => {
     const dt = (now - last) / 1000;
     last = now;
 
-    // Flag position
-    flag.pos = { x: flag.x, y: ground(flag.x) + 1e-3 * Math.sin(2 * flag.age) };
-
     const grounded = player.pos.y >= ground(player.pos.x)
         && Vec.length(player.vel) < 1e-2;
 
+    // Win condition
+    if (grounded && Vec.distance(player.pos, flag.pos) < 0.05) {
+        for (let i = 0; i < 100; i++) {
+            const vel = Vec.scale(
+                Vec.rotate(
+                    { x: 0, y: -1 },
+                    2 * (Math.random() - 0.5)),
+                Math.random() + 0.2);
+            entities.push({
+                pos: flag.pos,
+                vel,
+                gravity: 0.5,
+                damping: 0.1,
+                collision: {
+                    bounce: 0.8,
+                    friction: 1e-5,
+                },
+                age: 0,
+                ttl: Math.random() + 1,
+                shape: {
+                    size: 0.015,
+                    color: ["#f77622", "#feae34", "#fee761"][Math.floor(Math.random() * 3)],
+                },
+            });
+        }
+        flag.pos = Vec.add(flag.pos, { x: 10, y: 0 });
+    }
+
     // Player animation
     player.sprite.frame = grounded ? 0 : 1;
+    // Flag animation
+    flag.rot = 0.1 * Math.sin(flag.age);
 
     // Detect drag
     if (!input.primary) {
@@ -200,8 +245,15 @@ const update = () => {
     }
 
     // Age
-    for (const e of entities.filter(e => e.age)) {
+    for (const e of entities.filter(e => e.age != null)) {
         e.age += dt;
+        if (e.ttl && e.age > e.ttl) {
+            e.kill = true;
+        }
+    }
+    // Stick
+    for (const e of entities.filter(e => e.stick)) {
+        e.pos.y = ground(e.pos.x);
     }
     // Gravity
     for (const e of entities.filter(e => e.gravity)) {
@@ -227,8 +279,9 @@ const update = () => {
         }
     }
 
+    entities = entities.filter(e => !e.kill);
+
     dbg.dt = dt;
-    dbg.player = player;
     dbg.input = input;
 };
 
