@@ -6,17 +6,29 @@ const ctx = canvas.getContext("2d", {
 
 const dbg = {};
 
+const camera = {
+    pos: { x: 5, y: -2 },
+    vel: Vec.zero(),
+    size: 10,
+};
+const screenToWorld = (pos) => Vec.add(
+    Vec.scale(Vec.subtract(pos, { x: .5, y: .5 }), camera.size),
+    camera.pos);
+const worldToScreen = (pos) => Vec.add(
+    Vec.scale(Vec.subtract(pos, camera.pos), camera.size ** -1),
+    { x: .5, y: .5 });
+
 const player = {
-    pos: { x: 0.1, y: 0.5 },
+    pos: { x: 1, y: 5 },
     vel: Vec.zero(),
     rot: 0,
-    damping: 0.3,
-    gravity: 0.8,
+    damping: .2,
+    gravity: 8,
     collision: {
         bounce: 0,
         friction: 1e-20,
     },
-    jump: 5,
+    jump: 30,
     shapes: [
         {
             x: [-.3, 0, .3],
@@ -28,7 +40,7 @@ const player = {
 };
 
 const flag = {
-    pos: { x: 0.9, y: 0 },
+    pos: { x: 9, y: 0 },
     stick: true,
     age: 0,
     shapes: [
@@ -46,7 +58,8 @@ const flag = {
 };
 
 let entities = [flag, player];
-const ground = (x) => 0.8 - 0.05 * Math.sin(10 * x) + 0.05 * Math.sin(2 * x);
+
+const ground = (x) => 0.8 - 0.5 * Math.sin(x) + 0.5 * Math.sin(0.2 * x);
 
 const input = {
     primary: false,
@@ -62,8 +75,15 @@ const draw = () => {
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // Screen coordinates
     ctx.save();
-    ctx.scale(canvas.width, canvas.height);
+    ctx.scale(canvas.width, canvas.width);
+
+    // World coordinates
+    ctx.save();
+    ctx.translate(.5, .5);
+    ctx.scale(camera.size ** -1, camera.size ** -1);
+    ctx.translate(-camera.pos.x, -camera.pos.y);
 
     // Ground
     {
@@ -71,13 +91,16 @@ const draw = () => {
         const steps = 100;
         for (let i = 0; i <= steps; i++) {
             const x = i / steps;
-            ctx.lineTo(x, ground(x));
+            const p = screenToWorld({ x, y: 0 });
+            ctx.lineTo(p.x, ground(p.x));
         }
-        ctx.lineWidth = 0.04;
+        ctx.lineWidth = 0.4;
         ctx.strokeStyle = "#8b9bb4";
         ctx.stroke();
-        ctx.lineTo(1, 1);
-        ctx.lineTo(0, 1);
+        const bottomRight = screenToWorld({ x: 1, y: 1 });
+        ctx.lineTo(bottomRight.x, bottomRight.y);
+        const bottomLeft = screenToWorld({ x: 0, y: 1 });
+        ctx.lineTo(bottomLeft.x, bottomLeft.y);
         ctx.fillStyle = "#c0cbdc";
         ctx.fill();
     }
@@ -87,7 +110,7 @@ const draw = () => {
         ctx.save();
         const y = ground(e.pos.x);
         const d = y - e.pos.y;
-        const r = (0.5 + Math.exp(d)) * .1;
+        const r = 0.5 + Math.exp(d);
         ctx.beginPath();
         ctx.ellipse(e.pos.x, y, e.shadow * r, e.shadow * r / 3, 0, 0, 2 * Math.PI);
         ctx.fillStyle = "#000";
@@ -96,30 +119,11 @@ const draw = () => {
         ctx.restore();
     }
 
-    // Drag trajectory
-    {
-        ctx.save();
-        ctx.beginPath();
-        let drag = Vec.subtract(input.dragEnd, input.dragStart);
-        const len = Vec.length(drag);
-        const pos = Vec.add(player.pos, { x: 0, y: -.02 });
-        const end = Vec.add(pos, drag);
-        ctx.moveTo(pos.x, pos.y);
-        ctx.lineTo(end.x, end.y);
-        ctx.lineWidth = 0.05 * (1 - Math.exp(-5 * len));
-        ctx.globalAlpha = 0.5 * Math.exp(-3 * len);
-        ctx.strokeStyle = "#000";
-        ctx.setLineDash([0.01, 0.01]);
-        ctx.stroke();
-        ctx.restore();
-    }
-
     // Shapes
     for (const e of entities.filter(e => e.shapes)) {
         ctx.save();
         ctx.translate(e.pos.x, e.pos.y);
         ctx.rotate(e.rot);
-        ctx.scale(.1, .1);
         for (const shape of e.shapes) {
             ctx.beginPath();
             ctx.moveTo(shape.x[0], shape.y[0]);
@@ -130,8 +134,8 @@ const draw = () => {
             ctx.strokeStyle = ctx.fillStyle = shape.color;
             ctx.lineJoin = ctx.lineCap = "round";
             ctx.lineWidth = 0.1;
-            ctx.stroke();
             ctx.fill();
+            ctx.stroke();
         }
         ctx.restore();
     }
@@ -139,34 +143,19 @@ const draw = () => {
     // Particles
     for (const e of entities.filter(e => e.particle)) {
         ctx.save();
-        ctx.translate(e.pos.x, e.pos.y);
-        ctx.rotate(e.rot);
-        const s = e.particle.size;
         ctx.fillStyle = e.particle.color;
         ctx.globalAlpha = 1 - (e.age / e.ttl) ** 4;
-        ctx.fillRect(-s / 2, -s / 2, s, s);
+        ctx.beginPath();
+        ctx.arc(e.pos.x, e.pos.y, e.particle.size, 0, 2 * Math.PI);
+        ctx.fill();
         ctx.restore();
     }
 
     // Debug overlay
     if (location.hash === "#debug") {
         ctx.save();
-        ctx.lineWidth = 0.005;
+        ctx.lineWidth = 0.05;
         ctx.globalAlpha = 0.5;
-        // Drag
-        ctx.beginPath();
-        ctx.moveTo(input.dragStart.x, input.dragStart.y);
-        ctx.lineTo(input.dragEnd.x, input.dragEnd.y);
-        ctx.stroke();
-        // Ground
-        ctx.beginPath();
-        const steps = 100;
-        for (let i = 0; i <= steps; i++) {
-            const x = i / steps;
-            ctx.lineTo(x, ground(x));
-        }
-        ctx.strokeStyle = "#00f";
-        ctx.stroke();
         // Origin
         for (let entity of entities.filter(e => e.pos)) {
             ctx.fillStyle = "#f00";
@@ -200,6 +189,32 @@ const draw = () => {
         pre.innerText = JSON.stringify(dbg, (k, v) => v.toFixed == null ? v : Number(v.toFixed(3)), 2);
     }
 
+    // World coordinates
+    ctx.restore();
+
+    // Drag trajectory
+    {
+        const drag = Vec.subtract(input.dragEnd, input.dragStart);
+        const len = Vec.length(drag);
+        if (len > .01) {
+            ctx.save();
+            // TODO: Begin line with a radius away from player
+            const pos = worldToScreen(Vec.add(player.pos, { x: 0, y: -.2 }));
+            const end = Vec.add(pos, drag);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            ctx.lineTo(end.x, end.y);
+            ctx.lineWidth = 0.05 * (1 - Math.exp(-5 * len));
+            ctx.globalAlpha = 0.5 * Math.exp(-3 * len);
+            ctx.strokeStyle = "#000";
+            ctx.lineJoin = ctx.lineCap = "round";
+            ctx.setLineDash([0, 1.5 * ctx.lineWidth]);
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+
+    // Screen coordinates
     ctx.restore();
 
     requestAnimationFrame(draw);
@@ -215,27 +230,27 @@ const update = () => {
         && Vec.length(player.vel) < 1e-2;
 
     // Win condition
-    if (grounded && Vec.distance(player.pos, flag.pos) < 0.05) {
+    if (grounded && Vec.distance(player.pos, flag.pos) < .1) {
         for (let i = 0; i < 100; i++) {
             const vel = Vec.scale(
                 Vec.rotate(
                     { x: 0, y: -1 },
                     2 * (Math.random() - 0.5)),
-                Math.random() + 0.2);
+                5 * (Math.random() + .5));
             const color = ["#f77622", "#feae34", "#fee761"][Math.floor(Math.random() * 3)];
             entities.push({
                 pos: flag.pos,
                 vel,
-                gravity: 0.5,
-                damping: 0.1,
+                gravity: 3,
+                damping: .2,
                 collision: {
-                    bounce: 0.8,
+                    bounce: 0,
                     friction: 1e-5,
                 },
                 age: 0,
                 ttl: Math.random() + 1,
                 particle: {
-                    size: 0.015,
+                    size: .1 * (Math.random() + .5),
                     color,
                 },
             });
@@ -292,19 +307,23 @@ const update = () => {
 
     entities = entities.filter(e => !e.kill);
 
+    // Debugging
     dbg.dt = dt;
+    dbg.camera = camera;
     dbg.input = input;
 };
 
-const getRelativeCoords = (e) => ({ x: e.offsetX / canvas.width, y: e.offsetY / canvas.height });
-
+const getScreenCoords = (e) => ({
+    x: e.offsetX / canvas.width,
+    y: e.offsetY / canvas.height
+});
 canvas.addEventListener("mousedown", (e) => {
     input.primary = true;
-    input.dragStart = input.dragEnd = getRelativeCoords(e);
+    input.dragStart = input.dragEnd = getScreenCoords(e);
 });
 canvas.addEventListener("mousemove", (e) => {
     if (input.primary) {
-        input.dragEnd = getRelativeCoords(e);
+        input.dragEnd = getScreenCoords(e);
     }
 });
 canvas.addEventListener("mouseup", (e) => {
