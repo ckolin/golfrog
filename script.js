@@ -17,23 +17,32 @@ const player = {
         friction: 1e-20,
     },
     jump: 5,
-    sprite: {
-        img: "frog",
-        frames: 2,
-        offset: { x: 0, y: -.04 },
-    },
-    shadow: 0.025,
+    shapes: [
+        {
+            x: [-.3, 0, .3],
+            y: [0, -.5, 0],
+            color: "green",
+        },
+    ],
+    shadow: 0.25,
 };
 
 const flag = {
     pos: { x: 0.9, y: 0 },
     stick: true,
     age: 0,
-    sprite: {
-        img: "flag",
-        offset: { x: 0, y: -.04 },
-    },
-    shadow: 0.01,
+    shapes: [
+        {
+            x: [-.05, -.05, .05, .05],
+            y: [0, -.2, -.2, 0],
+            color: "brown",
+        }, {
+            x: [-.05, -.05, .4],
+            y: [-.2, -.6, -.2],
+            color: "red",
+        }
+    ],
+    shadow: 0.1,
 };
 
 let entities = [flag, player];
@@ -78,9 +87,9 @@ const draw = () => {
         ctx.save();
         const y = ground(e.pos.x);
         const d = y - e.pos.y;
-        const r = 0.5 + Math.exp(d);
+        const r = (0.5 + Math.exp(d)) * .1;
         ctx.beginPath();
-        ctx.ellipse(e.pos.x, y + 0.01, e.shadow * r, e.shadow * r / 3, 0, 0, 2 * Math.PI);
+        ctx.ellipse(e.pos.x, y, e.shadow * r, e.shadow * r / 3, 0, 0, 2 * Math.PI);
         ctx.fillStyle = "#000";
         ctx.globalAlpha = 0.2 * Math.exp(-2 * d);
         ctx.fill();
@@ -93,7 +102,7 @@ const draw = () => {
         ctx.beginPath();
         let drag = Vec.subtract(input.dragEnd, input.dragStart);
         const len = Vec.length(drag);
-        const pos = Vec.add(player.pos, player.sprite.offset);
+        const pos = Vec.add(player.pos, { x: 0, y: -.02 });
         const end = Vec.add(pos, drag);
         ctx.moveTo(pos.x, pos.y);
         ctx.lineTo(end.x, end.y);
@@ -105,32 +114,35 @@ const draw = () => {
         ctx.restore();
     }
 
-    // Sprites
-    for (const e of entities.filter(e => e.sprite)) {
+    // Shapes
+    for (const e of entities.filter(e => e.shapes)) {
         ctx.save();
         ctx.translate(e.pos.x, e.pos.y);
         ctx.rotate(e.rot);
-        ctx.translate(e.sprite.offset.x, e.sprite.offset.y);
-        const img = document.getElementById(e.sprite.img);
-        const frameWidth = e.sprite.frames ?
-            img.naturalWidth / e.sprite.frames
-            : img.naturalWidth;
-        const frame = e.sprite.delay ?
-            Math.floor(e.age / e.sprite.delay) % e.sprite.frames
-            : e.sprite.frame ?? 0;
-        const size = Vec.scale({ x: 1, y: 1 }, e.sprite.scale ?? 0.1);
-        ctx.translate(-size.x / 2, -size.y / 2); // Center image
-        ctx.drawImage(img, frameWidth * frame, 0, frameWidth, img.naturalHeight, 0, 0, size.x, size.y);
+        ctx.scale(.1, .1);
+        for (const shape of e.shapes) {
+            ctx.beginPath();
+            ctx.moveTo(shape.x[0], shape.y[0]);
+            for (let i = 1; i < shape.x.length; i++) {
+                ctx.lineTo(shape.x[i], shape.y[i]);
+            }
+            ctx.closePath();
+            ctx.strokeStyle = ctx.fillStyle = shape.color;
+            ctx.lineJoin = ctx.lineCap = "round";
+            ctx.lineWidth = 0.1;
+            ctx.stroke();
+            ctx.fill();
+        }
         ctx.restore();
     }
 
-    // Shapes
-    for (const e of entities.filter(e => e.shape)) {
+    // Particles
+    for (const e of entities.filter(e => e.particle)) {
         ctx.save();
         ctx.translate(e.pos.x, e.pos.y);
         ctx.rotate(e.rot);
-        const s = e.shape.size;
-        ctx.fillStyle = e.shape.color;
+        const s = e.particle.size;
+        ctx.fillStyle = e.particle.color;
         ctx.globalAlpha = 1 - (e.age / e.ttl) ** 4;
         ctx.fillRect(-s / 2, -s / 2, s, s);
         ctx.restore();
@@ -210,6 +222,7 @@ const update = () => {
                     { x: 0, y: -1 },
                     2 * (Math.random() - 0.5)),
                 Math.random() + 0.2);
+            const color = ["#f77622", "#feae34", "#fee761"][Math.floor(Math.random() * 3)];
             entities.push({
                 pos: flag.pos,
                 vel,
@@ -221,17 +234,15 @@ const update = () => {
                 },
                 age: 0,
                 ttl: Math.random() + 1,
-                shape: {
+                particle: {
                     size: 0.015,
-                    color: ["#f77622", "#feae34", "#fee761"][Math.floor(Math.random() * 3)],
+                    color,
                 },
             });
         }
         flag.pos = Vec.add(flag.pos, { x: 10, y: 0 });
     }
 
-    // Player animation
-    player.sprite.frame = grounded ? 0 : 1;
     // Flag animation
     flag.rot = 0.1 * Math.sin(flag.age);
 
