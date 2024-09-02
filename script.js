@@ -6,6 +6,12 @@ const ctx = canvas.getContext("2d", {
 
 const dbg = {};
 
+// https://lospec.com/palette-list/ammo-8
+const colors = [
+    "#040c06", "#112318", "#1e3a29", "#305d42",
+    "#4d8061", "#89a257", "#bedc7f", "#eeffcc",
+];
+
 const camera = {
     pos: { x: 5, y: -2 },
     vel: Vec.zero(),
@@ -33,25 +39,25 @@ const player = {
         {
             x: [-.3, 0, .3],
             y: [0, -.5, 0],
-            color: "green",
+            color: colors[5],
         },
     ],
     shadow: 0.25,
 };
 
 const flag = {
-    pos: { x: 9, y: 0 },
+    pos: { x: 8, y: 0 },
     stick: true,
     age: 0,
     shapes: [
         {
             x: [-.05, -.05, .05, .05],
-            y: [0, -.2, -.2, 0],
-            color: "brown",
+            y: [0, -.4, -.4, 0],
+            color: colors[5],
         }, {
             x: [-.05, -.05, .4],
-            y: [-.2, -.6, -.2],
-            color: "red",
+            y: [-.4, -.8, -.4],
+            color: colors[6],
         }
     ],
     shadow: 0.1,
@@ -72,12 +78,12 @@ const draw = () => {
 
     canvas.width = canvas.height = 512;
     ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Screen coordinates
     ctx.save();
     ctx.scale(canvas.width, canvas.width);
+    ctx.fillStyle = colors[2];
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // World coordinates
     ctx.save();
@@ -88,20 +94,19 @@ const draw = () => {
     // Ground
     {
         ctx.beginPath();
-        const steps = 100;
+        const steps = canvas.width >> 3;
         for (let i = 0; i <= steps; i++) {
             const x = i / steps;
             const p = screenToWorld({ x, y: 0 });
             ctx.lineTo(p.x, ground(p.x));
         }
-        ctx.lineWidth = 0.4;
-        ctx.strokeStyle = "#8b9bb4";
+        ctx.lineWidth = .2;
+        ctx.strokeStyle = ctx.fillStyle = colors[4];
         ctx.stroke();
         const bottomRight = screenToWorld({ x: 1, y: 1 });
         ctx.lineTo(bottomRight.x, bottomRight.y);
         const bottomLeft = screenToWorld({ x: 0, y: 1 });
         ctx.lineTo(bottomLeft.x, bottomLeft.y);
-        ctx.fillStyle = "#c0cbdc";
         ctx.fill();
     }
 
@@ -110,11 +115,11 @@ const draw = () => {
         ctx.save();
         const y = ground(e.pos.x);
         const d = y - e.pos.y;
-        const r = 0.5 + Math.exp(d);
+        const r = .5 + Math.exp(d);
         ctx.beginPath();
-        ctx.ellipse(e.pos.x, y, e.shadow * r, e.shadow * r / 3, 0, 0, 2 * Math.PI);
+        ctx.ellipse(e.pos.x, y + .1, e.shadow * r, e.shadow * r / 3, 0, 0, 2 * Math.PI);
         ctx.fillStyle = "#000";
-        ctx.globalAlpha = 0.2 * Math.exp(-2 * d);
+        ctx.globalAlpha = .2 * Math.exp(-2 * d);
         ctx.fill();
         ctx.restore();
     }
@@ -133,7 +138,7 @@ const draw = () => {
             ctx.closePath();
             ctx.strokeStyle = ctx.fillStyle = shape.color;
             ctx.lineJoin = ctx.lineCap = "round";
-            ctx.lineWidth = 0.1;
+            ctx.lineWidth = .1;
             ctx.fill();
             ctx.stroke();
         }
@@ -154,8 +159,8 @@ const draw = () => {
     // Debug overlay
     if (location.hash === "#debug") {
         ctx.save();
-        ctx.lineWidth = 0.05;
-        ctx.globalAlpha = 0.5;
+        ctx.lineWidth = .05;
+        ctx.globalAlpha = .5;
         // Origin
         for (let entity of entities.filter(e => e.pos)) {
             ctx.fillStyle = "#f00";
@@ -167,7 +172,7 @@ const draw = () => {
         }
         // Velocity vector
         for (let entity of entities.filter(e => e.vel)) {
-            const end = Vec.add(entity.pos, Vec.scale(entity.vel, 0.1));
+            const end = Vec.add(entity.pos, Vec.scale(entity.vel, .1));
             ctx.beginPath();
             ctx.moveTo(entity.pos.x, entity.pos.y);
             ctx.lineTo(end.x, end.y);
@@ -204,9 +209,9 @@ const draw = () => {
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
             ctx.lineTo(end.x, end.y);
-            ctx.lineWidth = 0.05 * (1 - Math.exp(-5 * len));
-            ctx.globalAlpha = 0.5 * Math.exp(-3 * len);
-            ctx.strokeStyle = "#000";
+            ctx.lineWidth = .05 * (1 - Math.exp(-5 * len));
+            ctx.globalAlpha = .5 * Math.exp(-3 * len);
+            ctx.strokeStyle = colors[7];
             ctx.lineJoin = ctx.lineCap = "round";
             ctx.setLineDash([0, 1.5 * ctx.lineWidth]);
             ctx.stroke();
@@ -230,28 +235,27 @@ const update = () => {
         && Vec.length(player.vel) < 1e-2;
 
     // Win condition
-    if (grounded && Vec.distance(player.pos, flag.pos) < .1) {
-        for (let i = 0; i < 100; i++) {
+    if (grounded && Vec.distance(player.pos, flag.pos) < .2) {
+        for (let i = 0; i < 50; i++) {
             const vel = Vec.scale(
                 Vec.rotate(
                     { x: 0, y: -1 },
-                    2 * (Math.random() - 0.5)),
-                5 * (Math.random() + .5));
-            const color = ["#f77622", "#feae34", "#fee761"][Math.floor(Math.random() * 3)];
+                    1.5 * (Math.random() - .5)),
+                5 * (Math.random() + .2));
             entities.push({
                 pos: flag.pos,
                 vel,
-                gravity: 3,
-                damping: .2,
+                gravity: 2,
+                damping: .3,
                 collision: {
                     bounce: 0,
                     friction: 1e-5,
                 },
                 age: 0,
-                ttl: Math.random() + 1,
+                ttl: 2 * (Math.random() + .2),
                 particle: {
-                    size: .1 * (Math.random() + .5),
-                    color,
+                    size: .08,
+                    color: colors[6],
                 },
             });
         }
@@ -259,12 +263,12 @@ const update = () => {
     }
 
     // Flag animation
-    flag.rot = 0.1 * Math.sin(flag.age);
+    flag.rot = .1 * Math.sin(flag.age);
 
     // Detect drag
     if (!input.primary) {
         const drag = Vec.subtract(input.dragStart, input.dragEnd);
-        if (grounded && Vec.length(drag) > 0.02) {
+        if (grounded && Vec.length(drag) > .02) {
             player.vel = Vec.add(player.vel, Vec.scale(drag, -player.jump));
         }
         input.dragStart = input.dragEnd = Vec.zero();
