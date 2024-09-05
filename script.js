@@ -330,6 +330,27 @@ const update = () => {
         const g = ground(e.pos.x);
         if (e.pos.y > g) {
             e.pos.y = g;
+            // Dust particles
+            if (Vec.length(e.vel) > 2) {
+                for (let i = 0; i < 10; i++) {
+                    const x = e.pos.x + Math.random() - .5;
+                    const y = ground(x) + .1;
+                    const vel = Vec.rotate(
+                        { x: 0, y: -.5 },
+                        2 * (Math.random() - .5)
+                    );
+                    entities.push({
+                        pos: { x, y },
+                        vel,
+                        age: 0,
+                        ttl: .5 * (Math.random() + .5),
+                        particle: {
+                            size: .12,
+                            color: colors[4],
+                        },
+                    });
+                }
+            }
             e.vel.y *= -e.collision.bounce;
         }
         if (Math.abs(e.pos.y - g) < 1e-3) {
