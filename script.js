@@ -263,6 +263,7 @@ const update = () => {
 
     // Win condition
     if (grounded && Vec.distance(player.pos, flag.pos) < .3) {
+        const pos = Vec.add(flag.pos, { x: 0, y: -.5 });
         for (let i = 0; i < 50; i++) {
             const vel = Vec.scale(
                 Vec.rotate(
@@ -270,7 +271,7 @@ const update = () => {
                     1.5 * (Math.random() - .5)),
                 5 * (Math.random() + .2));
             entities.push({
-                pos: flag.pos,
+                pos,
                 vel,
                 gravity: 2,
                 damping: .3,
