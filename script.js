@@ -40,7 +40,28 @@ const player = {
             x: [-.3, 0, .3],
             y: [0, -.5, 0],
             color: colors[5],
-        },
+            fill: true,
+        }, {
+            x: [-.12],
+            y: [-.55],
+            w: .2,
+            color: colors[7],
+        }, {
+            x: [.12],
+            y: [-.55],
+            w: .2,
+            color: colors[7],
+        }, {
+            x: [-.1],
+            y: [-.55],
+            w: .1,
+            color: colors[0],
+        }, {
+            x: [.1],
+            y: [-.55],
+            w: .1,
+            color: colors[0],
+        }
     ],
     shadow: 0.25,
 };
@@ -51,13 +72,14 @@ const flag = {
     age: 0,
     shapes: [
         {
-            x: [-.05, -.05, .05, .05],
-            y: [0, -.4, -.4, 0],
+            x: [0, 0],
+            y: [0, -.4],
             color: colors[5],
         }, {
-            x: [-.05, -.05, .4],
-            y: [-.4, -.8, -.4],
+            x: [0, 0, .4],
+            y: [-.4, -.7, -.4],
             color: colors[6],
+            fill: true,
         }
     ],
     shadow: 0.1,
@@ -129,17 +151,20 @@ const draw = () => {
         ctx.save();
         ctx.translate(e.pos.x, e.pos.y);
         ctx.rotate(e.rot);
+        ctx.lineJoin = ctx.lineCap = "round";
         for (const shape of e.shapes) {
             ctx.beginPath();
             ctx.moveTo(shape.x[0], shape.y[0]);
-            for (let i = 1; i < shape.x.length; i++) {
+            for (let i = 1; i < shape.x.length - 1; i++) {
                 ctx.lineTo(shape.x[i], shape.y[i]);
             }
-            ctx.closePath();
+            ctx.lineTo(shape.x[shape.x.length - 1], shape.y[shape.y.length - 1]);
             ctx.strokeStyle = ctx.fillStyle = shape.color;
-            ctx.lineJoin = ctx.lineCap = "round";
-            ctx.lineWidth = .1;
-            ctx.fill();
+            ctx.lineWidth = shape.w ?? .15;
+            if (shape.fill) {
+                ctx.closePath();
+                ctx.fill();
+            }
             ctx.stroke();
         }
         ctx.restore();
@@ -235,7 +260,7 @@ const update = () => {
         && Vec.length(player.vel) < 1e-2;
 
     // Win condition
-    if (grounded && Vec.distance(player.pos, flag.pos) < .2) {
+    if (grounded && Vec.distance(player.pos, flag.pos) < .3) {
         for (let i = 0; i < 50; i++) {
             const vel = Vec.scale(
                 Vec.rotate(
