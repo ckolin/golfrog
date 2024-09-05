@@ -228,11 +228,13 @@ const draw = () => {
         const len = Vec.length(drag);
         if (len > .01) {
             ctx.save();
-            // TODO: Begin line with a radius away from player
-            const pos = worldToScreen(Vec.add(player.pos, { x: 0, y: -.2 }));
-            const end = Vec.add(pos, drag);
+            const start = Vec.add(
+                worldToScreen(Vec.add(player.pos, { x: 0, y: -.2 })),
+                Vec.scale(drag, .05 / len)
+            );
+            const end = Vec.add(start, drag);
             ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
+            ctx.moveTo(start.x, start.y);
             ctx.lineTo(end.x, end.y);
             ctx.lineWidth = .05 * (1 - Math.exp(-5 * len));
             ctx.globalAlpha = .5 * Math.exp(-3 * len);
