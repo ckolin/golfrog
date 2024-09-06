@@ -264,7 +264,7 @@ const update = () => {
 
     // Win condition
     if (Vec.distance(player.pos, flag.pos) < .5) {
-        const pos = Vec.add(flag.pos, { x: 0, y: -.3 });
+        const pos = Vec.add(flag.pos, { x: 0, y: -.2 });
         for (let i = 0; i < 50; i++) {
             const vel = Vec.scale(
                 Vec.rotate(
