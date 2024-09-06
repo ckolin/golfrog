@@ -6,10 +6,11 @@ const ctx = canvas.getContext("2d", {
 
 const dbg = {};
 
-// https://lospec.com/palette-list/ammo-8
+// https://lospec.com/palette-list/snap-12
 const colors = [
-    "#040c06", "#112318", "#1e3a29", "#305d42",
-    "#4d8061", "#89a257", "#bedc7f", "#eeffcc",
+    "#ffffff", "#ffd588", "#72cb48", "#b2d4d4",
+    "#c45544", "#cc9155", "#0a8a71", "#66aaf7",
+    "#7f3355", "#000000", "#114c77", "#8891aa",
 ];
 
 const camera = {
@@ -39,28 +40,28 @@ const player = {
         {
             x: [-.3, 0, .3],
             y: [0, -.5, 0],
-            color: colors[5],
+            color: colors[2],
             fill: true,
         }, {
             x: [-.12],
             y: [-.55],
             w: .2,
-            color: colors[7],
+            color: colors[0],
         }, {
             x: [.12],
             y: [-.55],
             w: .2,
-            color: colors[7],
+            color: colors[0],
         }, {
             x: [-.1],
             y: [-.55],
             w: .1,
-            color: colors[0],
+            color: colors[9],
         }, {
             x: [.1],
             y: [-.55],
             w: .1,
-            color: colors[0],
+            color: colors[9],
         }
     ],
     shadow: 0.25,
@@ -78,7 +79,7 @@ const flag = {
         }, {
             x: [0, 0, .4],
             y: [-.4, -.7, -.4],
-            color: colors[6],
+            color: colors[4],
             fill: true,
         }
     ],
@@ -104,7 +105,7 @@ const draw = () => {
     // Screen coordinates
     ctx.save();
     ctx.scale(canvas.width, canvas.width);
-    ctx.fillStyle = colors[2];
+    ctx.fillStyle = colors[10];
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // World coordinates
@@ -122,7 +123,7 @@ const draw = () => {
         const p = screenToWorld({ x, y: 0 });
         ctx.lineTo(p.x, ground(p.x));
     }
-    ctx.fillStyle = colors[4];
+    ctx.fillStyle = colors[6];
     const bottomRight = screenToWorld({ x: 1, y: 1 });
     ctx.lineTo(bottomRight.x, bottomRight.y);
     const bottomLeft = screenToWorld({ x: 0, y: 1 });
@@ -235,7 +236,7 @@ const draw = () => {
             trajectory.push(pos);
         }
         ctx.save();
-        ctx.fillStyle = colors[7];
+        ctx.fillStyle = colors[0];
         for (const t of trajectory) {
             const dist = Vec.distance(player.pos, t);
             const s = worldToScreen(Vec.add(t, { x: 0, y: -.2 }));
@@ -285,7 +286,7 @@ const update = () => {
                 ttl: 2 * (Math.random() + .2),
                 particle: {
                     size: .08,
-                    color: colors[6],
+                    color: colors[4],
                 },
             });
         }
@@ -348,7 +349,7 @@ const update = () => {
                         ttl: .5 * (Math.random() + .5),
                         particle: {
                             size: .12,
-                            color: colors[4],
+                            color: colors[6],
                         },
                     });
                 }
