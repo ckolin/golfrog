@@ -32,8 +32,8 @@ const player = {
     damping: .2,
     gravity: 8,
     collision: {
-        bounce: 0,
-        friction: 1e-20,
+        bounce: .8,
+        friction: 1,
     },
     jump: 30,
     shapes: [
@@ -320,52 +320,33 @@ const update = () => {
     for (const e of entities.filter(e => e.vel)) {
         e.pos = Vec.add(e.pos, Vec.scale(e.vel, dt));
     }
-    // Gravity
-    for (const e of entities.filter(e => e.gravity)) {
-        e.vel = Vec.add(e.vel, { x: 0, y: e.gravity * dt });
+    // Ground collision
+    for (const e of entities.filter(e => e.collision)) {
+        const x = .01;
+        const y = ground(e.pos.x + x) - ground(e.pos.x);
+        const g = Vec.normalize({ x, y });
+        const n = { x: -g.y, y: g.x };
+        if (e.pos.y > ground(e.pos.x)) {
+            e.pos.y = ground(e.pos.x);
+            const f = 1 - e.collision.friction * Math.abs(Vec.dot(Vec.normalize(e.vel), g));
+            e.vel = Vec.scale(
+                Vec.subtract(e.vel, Vec.scale(n, 2 * Vec.dot(e.vel, n))),
+                e.collision.bounce * f);
+        }
     }
     // Damping
     for (const e of entities.filter(e => e.damping)) {
         e.vel = Vec.scale(e.vel, e.damping ** dt);
     }
-    // Ground collision
-    for (const e of entities.filter(e => e.collision)) {
-        const g = ground(e.pos.x);
-        if (e.pos.y > g) {
-            e.pos.y = g;
-            // Dust particles
-            if (Vec.length(e.vel) > 2) {
-                for (let i = 0; i < 10; i++) {
-                    const x = e.pos.x + Math.random() - .5;
-                    const y = ground(x) + .1;
-                    const vel = Vec.rotate(
-                        { x: .2 * e.vel.x, y: -.5 },
-                        2 * (Math.random() - .5)
-                    );
-                    entities.push({
-                        pos: { x, y },
-                        vel,
-                        age: 0,
-                        ttl: .5 * (Math.random() + .5),
-                        particle: {
-                            size: .12,
-                            color: 6,
-                        },
-                    });
-                }
-            }
-            e.vel.y *= -e.collision.bounce;
-        }
-        if (Math.abs(e.pos.y - g) < 1e-3) {
-            e.vel.x *= e.collision.friction ** dt;
-        }
+    // Gravity
+    for (const e of entities.filter(e => e.gravity)) {
+        e.vel = Vec.add(e.vel, { x: 0, y: e.gravity * dt });
     }
 
     entities = entities.filter(e => !e.kill);
 
     // Debugging
     dbg.dt = dt;
-    dbg.camera = camera;
     dbg.input = input;
 };
 
