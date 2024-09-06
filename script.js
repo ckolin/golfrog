@@ -114,23 +114,22 @@ const draw = () => {
     ctx.translate(-camera.pos.x, -camera.pos.y);
 
     // Ground
-    {
-        ctx.beginPath();
-        const steps = canvas.width >> 3;
-        for (let i = 0; i <= steps; i++) {
-            const x = i / steps;
-            const p = screenToWorld({ x, y: 0 });
-            ctx.lineTo(p.x, ground(p.x));
-        }
-        ctx.lineWidth = .2;
-        ctx.strokeStyle = ctx.fillStyle = colors[4];
-        ctx.stroke();
-        const bottomRight = screenToWorld({ x: 1, y: 1 });
-        ctx.lineTo(bottomRight.x, bottomRight.y);
-        const bottomLeft = screenToWorld({ x: 0, y: 1 });
-        ctx.lineTo(bottomLeft.x, bottomLeft.y);
-        ctx.fill();
+    ctx.save()
+    ctx.beginPath();
+    const steps = canvas.width >> 3;
+    for (let i = 0; i <= steps; i++) {
+        const x = i / steps;
+        const p = screenToWorld({ x, y: 0 });
+        ctx.lineTo(p.x, ground(p.x));
     }
+    ctx.fillStyle = colors[4];
+    const bottomRight = screenToWorld({ x: 1, y: 1 });
+    ctx.lineTo(bottomRight.x, bottomRight.y);
+    const bottomLeft = screenToWorld({ x: 0, y: 1 });
+    ctx.lineTo(bottomLeft.x, bottomLeft.y);
+    ctx.fill();
+
+    ctx.clip(); // Ground clip
 
     // Shadows
     for (const e of entities.filter(e => e.shadow)) {
@@ -145,6 +144,8 @@ const draw = () => {
         ctx.fill();
         ctx.restore();
     }
+
+    ctx.restore(); // Ground clip
 
     // Shapes
     for (const e of entities.filter(e => e.shapes)) {
@@ -219,35 +220,35 @@ const draw = () => {
         pre.innerText = JSON.stringify(dbg, (k, v) => v.toFixed == null ? v : Number(v.toFixed(3)), 2);
     }
 
-    // World coordinates
-    ctx.restore();
+    ctx.restore(); // World coordinates
 
     // Drag trajectory
-    if (player.grounded) {
-        const drag = Vec.subtract(input.dragEnd, input.dragStart);
-        const len = Vec.length(drag);
-        if (len > .01) {
-            ctx.save();
-            const start = Vec.add(
-                worldToScreen(Vec.add(player.pos, { x: 0, y: -.2 })),
-                Vec.scale(drag, .05 / len)
-            );
-            const end = Vec.add(start, drag);
-            ctx.beginPath();
-            ctx.moveTo(start.x, start.y);
-            ctx.lineTo(end.x, end.y);
-            ctx.lineWidth = .05 * (1 - Math.exp(-5 * len));
-            ctx.globalAlpha = .5 * Math.exp(-3 * len);
-            ctx.strokeStyle = colors[7];
-            ctx.lineJoin = ctx.lineCap = "round";
-            ctx.setLineDash([0, 1.5 * ctx.lineWidth]);
-            ctx.stroke();
-            ctx.restore();
+    const drag = Vec.subtract(input.dragEnd, input.dragStart);
+    if (player.grounded && Vec.length(drag) > .01) {
+        const dt = .03;
+        const steps = 20 * Vec.length(drag) + 1;
+        let trajectory = [];
+        let { pos } = player;
+        let vel = Vec.add(player.vel, Vec.scale(drag, player.jump));
+        for (let i = 0; i < steps; i++) {
+            pos = Vec.add(pos, Vec.scale(vel, dt));
+            vel = Vec.scale(Vec.add(vel, { x: 0, y: player.gravity * dt }), player.damping ** dt);
+            trajectory.push(pos);
         }
+        ctx.save();
+        ctx.fillStyle = colors[7];
+        for (const t of trajectory) {
+            const dist = Vec.distance(player.pos, t);
+            const s = worldToScreen(Vec.add(t, { x: 0, y: -.2 }));
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, .01, 0, 2 * Math.PI);
+            ctx.globalAlpha = Math.max(0, -.2 * (dist - .5) * (dist - 5));
+            ctx.fill();
+        }
+        ctx.restore();
     }
 
-    // Screen coordinates
-    ctx.restore();
+    ctx.restore(); // Screen coordinates
 
     requestAnimationFrame(draw);
 };
@@ -260,7 +261,7 @@ const update = () => {
 
     // Check if player has stopped on ground
     player.grounded = player.pos.y >= ground(player.pos.x)
-        && Vec.length(player.vel) < 1e-2;
+        && Vec.length(player.vel) < .1;
 
     // Win condition
     if (Vec.distance(player.pos, flag.pos) < .5) {
@@ -296,9 +297,9 @@ const update = () => {
 
     // Detect drag
     if (!input.primary) {
-        const drag = Vec.subtract(input.dragStart, input.dragEnd);
+        const drag = Vec.subtract(input.dragEnd, input.dragStart);
         if (player.grounded && Vec.length(drag) > .02) {
-            player.vel = Vec.add(player.vel, Vec.scale(drag, -player.jump));
+            player.vel = Vec.add(player.vel, Vec.scale(drag, player.jump));
         }
         input.dragStart = input.dragEnd = Vec.zero();
     }
@@ -314,13 +315,13 @@ const update = () => {
     for (const e of entities.filter(e => e.stick)) {
         e.pos.y = ground(e.pos.x);
     }
-    // Gravity
-    for (const e of entities.filter(e => e.gravity)) {
-        e.vel = Vec.add(e.vel, { x: 0, y: e.gravity * dt });
-    }
     // Velocity
     for (const e of entities.filter(e => e.vel)) {
         e.pos = Vec.add(e.pos, Vec.scale(e.vel, dt));
+    }
+    // Gravity
+    for (const e of entities.filter(e => e.gravity)) {
+        e.vel = Vec.add(e.vel, { x: 0, y: e.gravity * dt });
     }
     // Damping
     for (const e of entities.filter(e => e.damping)) {
@@ -337,7 +338,7 @@ const update = () => {
                     const x = e.pos.x + Math.random() - .5;
                     const y = ground(x) + .1;
                     const vel = Vec.rotate(
-                        { x: 0, y: -.5 },
+                        { x: .2 * e.vel.x, y: -.5 },
                         2 * (Math.random() - .5)
                     );
                     entities.push({
