@@ -223,7 +223,7 @@ const draw = () => {
     ctx.restore();
 
     // Drag trajectory
-    {
+    if (player.grounded) {
         const drag = Vec.subtract(input.dragEnd, input.dragStart);
         const len = Vec.length(drag);
         if (len > .01) {
@@ -258,12 +258,13 @@ const update = () => {
     const dt = (now - last) / 1000;
     last = now;
 
-    const grounded = player.pos.y >= ground(player.pos.x)
+    // Check if player has stopped on ground
+    player.grounded = player.pos.y >= ground(player.pos.x)
         && Vec.length(player.vel) < 1e-2;
 
     // Win condition
-    if (grounded && Vec.distance(player.pos, flag.pos) < .3) {
-        const pos = Vec.add(flag.pos, { x: 0, y: -.5 });
+    if (Vec.distance(player.pos, flag.pos) < .5) {
+        const pos = Vec.add(flag.pos, { x: 0, y: -.3 });
         for (let i = 0; i < 50; i++) {
             const vel = Vec.scale(
                 Vec.rotate(
@@ -296,7 +297,7 @@ const update = () => {
     // Detect drag
     if (!input.primary) {
         const drag = Vec.subtract(input.dragStart, input.dragEnd);
-        if (grounded && Vec.length(drag) > .02) {
+        if (player.grounded && Vec.length(drag) > .02) {
             player.vel = Vec.add(player.vel, Vec.scale(drag, -player.jump));
         }
         input.dragStart = input.dragEnd = Vec.zero();
