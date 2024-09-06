@@ -225,12 +225,11 @@ const draw = () => {
     // Drag trajectory
     const drag = Vec.subtract(input.dragEnd, input.dragStart);
     if (player.grounded && Vec.length(drag) > .01) {
-        const dt = .03;
-        const steps = 20 * Vec.length(drag) + 1;
+        const dt = .02 / Vec.length(drag);
         let trajectory = [];
         let { pos } = player;
         let vel = Vec.add(player.vel, Vec.scale(drag, player.jump));
-        for (let i = 0; i < steps; i++) {
+        for (let i = 0; i < 10; i++) {
             pos = Vec.add(pos, Vec.scale(vel, dt));
             vel = Vec.scale(Vec.add(vel, { x: 0, y: player.gravity * dt }), player.damping ** dt);
             trajectory.push(pos);
@@ -240,9 +239,10 @@ const draw = () => {
         for (const t of trajectory) {
             const dist = Vec.distance(player.pos, t);
             const s = worldToScreen(Vec.add(t, { x: 0, y: -.2 }));
+            const r = 1 - Math.exp(-dist);
             ctx.beginPath();
-            ctx.arc(s.x, s.y, .01, 0, 2 * Math.PI);
-            ctx.globalAlpha = Math.max(0, -.2 * (dist - .5) * (dist - 5));
+            ctx.arc(s.x, s.y, .01 * r, 0, 2 * Math.PI);
+            ctx.globalAlpha = Math.max(0, -.16 * dist * (dist - 5));
             ctx.fill();
         }
         ctx.restore();
