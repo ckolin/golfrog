@@ -137,11 +137,11 @@ const draw = () => {
         ctx.save();
         const y = ground(e.pos.x);
         const d = y - e.pos.y;
-        const r = .5 + Math.exp(d);
+        const r = .5 + Math.exp(.3 * d);
         ctx.beginPath();
         ctx.ellipse(e.pos.x, y + .1, e.shadow * r, e.shadow * r / 3, 0, 0, 2 * Math.PI);
         ctx.fillStyle = "#000";
-        ctx.globalAlpha = .2 * Math.exp(-2 * d);
+        ctx.globalAlpha = .2 * Math.exp(-d);
         ctx.fill();
         ctx.restore();
     }
