@@ -40,28 +40,28 @@ const player = {
         {
             x: [-.3, 0, .3],
             y: [0, -.5, 0],
-            color: colors[2],
+            color: 2,
             fill: true,
         }, {
             x: [-.12],
             y: [-.55],
             w: .2,
-            color: colors[0],
+            color: 0,
         }, {
             x: [.12],
             y: [-.55],
             w: .2,
-            color: colors[0],
+            color: 0,
         }, {
             x: [-.1],
             y: [-.55],
             w: .1,
-            color: colors[9],
+            color: 9,
         }, {
             x: [.1],
             y: [-.55],
             w: .1,
-            color: colors[9],
+            color: 9,
         }
     ],
     shadow: 0.25,
@@ -75,11 +75,11 @@ const flag = {
         {
             x: [0, 0],
             y: [0, -.4],
-            color: colors[5],
+            color: 5,
         }, {
             x: [0, 0, .4],
             y: [-.4, -.7, -.4],
-            color: colors[4],
+            color: 4,
             fill: true,
         }
     ],
@@ -161,7 +161,7 @@ const draw = () => {
                 ctx.lineTo(shape.x[i], shape.y[i]);
             }
             ctx.lineTo(shape.x[shape.x.length - 1], shape.y[shape.y.length - 1]);
-            ctx.strokeStyle = ctx.fillStyle = shape.color;
+            ctx.strokeStyle = ctx.fillStyle = colors[shape.color];
             ctx.lineWidth = shape.w ?? .15;
             if (shape.fill) {
                 ctx.closePath();
@@ -175,7 +175,7 @@ const draw = () => {
     // Particles
     for (const e of entities.filter(e => e.particle)) {
         ctx.save();
-        ctx.fillStyle = e.particle.color;
+        ctx.fillStyle = colors[e.particle.color];
         ctx.globalAlpha = 1 - (e.age / e.ttl) ** 4;
         ctx.beginPath();
         ctx.arc(e.pos.x, e.pos.y, e.particle.size, 0, 2 * Math.PI);
@@ -286,7 +286,7 @@ const update = () => {
                 ttl: 2 * (Math.random() + .2),
                 particle: {
                     size: .08,
-                    color: colors[4],
+                    color: 4,
                 },
             });
         }
@@ -349,7 +349,7 @@ const update = () => {
                         ttl: .5 * (Math.random() + .5),
                         particle: {
                             size: .12,
-                            color: colors[6],
+                            color: 6,
                         },
                     });
                 }
