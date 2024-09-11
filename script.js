@@ -86,7 +86,34 @@ const flag = {
     shadow: 0.1,
 };
 
-let entities = [flag, player];
+const cloud = {
+    pos: { x: 5, y: -3 },
+    shapes: [
+        {
+            x: [-1.5],
+            y: [-1],
+            w: 2,
+            color: 11,
+        }, {
+            x: [.15],
+            y: [-1.75],
+            w: 2,
+            color: 11,
+        }, {
+            x: [1.5],
+            y: [-1],
+            w: 2,
+            color: 11,
+        }, {
+            x: [-1.5, 1.5],
+            y: [-.5, -.5],
+            w: 1,
+            color: 11,
+        },
+    ],
+};
+
+let entities = [flag, player, cloud];
 
 const ground = (x) => 0.8 - 0.5 * Math.sin(x) + 0.5 * Math.sin(0.2 * x);
 
