@@ -279,7 +279,7 @@ const draw = () => {
             pre.style.pointerEvents = "none";
             pre.style.color = "white";
             pre.style.textShadow = "1px 1px black";
-            document.body.prepend(pre);
+            document.body.append(pre);
         }
         pre.innerText = JSON.stringify(dbg, (k, v) => v.toFixed == null ? v : Number(v.toFixed(3)), 2);
     }
@@ -302,7 +302,7 @@ const update = () => {
 
     // Check if player has stopped on ground
     player.grounded = player.pos.y >= ground(player.pos.x)
-        && Vec.length(player.vel) < .1;
+        && Vec.length(player.vel) * dt < .01;
 
     // Win condition
     if (Vec.distance(player.pos, flag.pos) < .5) {
