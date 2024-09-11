@@ -127,9 +127,6 @@ const input = {
 const draw = () => {
     update();
 
-    canvas.width = canvas.height = 512;
-    ctx.imageSmoothingEnabled = false;
-
     // Screen coordinates
     ctx.save();
     ctx.scale(canvas.width, canvas.width);
@@ -414,4 +411,15 @@ canvas.addEventListener("mouseleave", () => {
 document.addEventListener("blur", () => input.paused = true);
 document.addEventListener("focus", () => input.paused = false);
 
+// Canvas resizing
+const resize = () => {
+    const unit = 32;
+    const size = Math.min(Math.floor(Math.min(window.innerWidth, window.innerHeight) / unit), 24);
+    canvas.width = canvas.height = size * unit;
+    canvas.style.left = `${(window.innerWidth - canvas.width) / 2}px`;
+    canvas.style.top = `${(window.innerHeight - canvas.height) / 2}px`;
+};
+window.addEventListener("resize", resize);
+
+resize();
 draw();
