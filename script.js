@@ -148,6 +148,23 @@ const draw = () => {
 
     ctx.restore(); // Ground clip
 
+    // Drag direction
+    const drag = Vec.subtract(input.dragEnd, input.dragStart);
+    const showDrag = player.grounded && Vec.length(drag) > .01;
+    if (showDrag) {
+        ctx.save();
+        ctx.translate(player.pos.x, player.pos.y - .2);
+        ctx.rotate(Vec.angle(drag));
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(3 * Vec.length(drag) + .2, 0);
+        ctx.strokeStyle = colors[0];
+        ctx.lineWidth = .25;
+        ctx.lineCap = "round";
+        ctx.stroke();
+        ctx.restore();
+    }
+
     // Shapes
     for (const e of entities.filter(e => e.shapes)) {
         ctx.save();
@@ -180,6 +197,27 @@ const draw = () => {
         ctx.beginPath();
         ctx.arc(e.pos.x, e.pos.y, e.particle.size, 0, 2 * Math.PI);
         ctx.fill();
+        ctx.restore();
+    }
+
+    // Drag trajectory
+    if (showDrag) {
+        ctx.save();
+        ctx.fillStyle = colors[0];
+        const dt = .02 / Vec.length(drag);
+        let { pos } = player;
+        let vel = Vec.add(player.vel, Vec.scale(drag, player.jump));
+        let dist = .1;
+        for (let i = 0; i < 10; i++) {
+            pos = Vec.add(pos, Vec.scale(vel, dt));
+            vel = Vec.scale(Vec.add(vel, { x: 0, y: player.gravity * dt }), player.damping ** dt);
+            dist += Vec.length(vel) * dt;
+            const r = 1 - Math.exp(-dist);
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y - .2, .1 * r, 0, 2 * Math.PI);
+            ctx.globalAlpha = Math.max(0, -.16 * dist * (dist - 5));
+            ctx.fill();
+        }
         ctx.restore();
     }
 
@@ -222,33 +260,6 @@ const draw = () => {
     }
 
     ctx.restore(); // World coordinates
-
-    // Drag trajectory
-    const drag = Vec.subtract(input.dragEnd, input.dragStart);
-    if (player.grounded && Vec.length(drag) > .01) {
-        const dt = .02 / Vec.length(drag);
-        let trajectory = [];
-        let { pos } = player;
-        let vel = Vec.add(player.vel, Vec.scale(drag, player.jump));
-        for (let i = 0; i < 10; i++) {
-            pos = Vec.add(pos, Vec.scale(vel, dt));
-            vel = Vec.scale(Vec.add(vel, { x: 0, y: player.gravity * dt }), player.damping ** dt);
-            trajectory.push(pos);
-        }
-        ctx.save();
-        ctx.fillStyle = colors[0];
-        for (const t of trajectory) {
-            const dist = Vec.distance(player.pos, t);
-            const s = worldToScreen(Vec.add(t, { x: 0, y: -.2 }));
-            const r = 1 - Math.exp(-dist);
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, .01 * r, 0, 2 * Math.PI);
-            ctx.globalAlpha = Math.max(0, -.16 * dist * (dist - 5));
-            ctx.fill();
-        }
-        ctx.restore();
-    }
-
     ctx.restore(); // Screen coordinates
 
     requestAnimationFrame(draw);
