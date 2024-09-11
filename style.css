@@ -6,6 +6,7 @@ body {
 
 canvas {
 	position: absolute;
+	touch-action: none;
 	border-radius: 4vmin;
 	box-shadow: 1vmin 1vmin 4vmin rgba(0, 0, 0, 0.3);
 	animation: 1s ease-out 1 fadeIn;
