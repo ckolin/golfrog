@@ -26,14 +26,14 @@ const worldToScreen = (pos) => Vec.add(
     { x: .5, y: .5 });
 
 const player = {
-    pos: { x: 1, y: 5 },
+    pos: { x: 1, y: 0 },
     vel: Vec.zero(),
     rot: 0,
-    damping: .2,
-    gravity: 8,
+    damping: .8,
+    gravity: 10,
     collision: {
-        bounce: .8,
-        friction: 1,
+        bounce: .3,
+        friction: .0,
     },
     jump: 30,
     shapes: [
@@ -325,13 +325,13 @@ const update = () => {
         const x = .01;
         const y = ground(e.pos.x + x) - ground(e.pos.x);
         const g = Vec.normalize({ x, y });
-        const n = { x: -g.y, y: g.x };
+        const normal = { x: -g.y, y: g.x };
         if (e.pos.y > ground(e.pos.x)) {
             e.pos.y = ground(e.pos.x);
-            const f = 1 - e.collision.friction * Math.abs(Vec.dot(Vec.normalize(e.vel), g));
-            e.vel = Vec.scale(
-                Vec.subtract(e.vel, Vec.scale(n, 2 * Vec.dot(e.vel, n))),
-                e.collision.bounce * f);
+            const ref = Vec.add(e.vel, Vec.scale(normal, -2 * Vec.dot(e.vel, normal)));
+            const a = Vec.angle(g);
+            const rot = Vec.rotate(ref, -a);
+            e.vel = Vec.rotate({ x: e.collision.friction ** dt * rot.x, y: e.collision.bounce * rot.y }, a);
         }
     }
     // Damping
