@@ -81,6 +81,12 @@ const flag = {
             y: [-.4, -.7, -.4],
             color: 4,
             fill: true,
+        }, {
+            x: [.13],
+            y: [-.39],
+            w: .3,
+            t: "01",
+            color: 9,
         }
     ],
     shadow: 0.1,
@@ -130,6 +136,8 @@ const draw = () => {
     // Screen coordinates
     ctx.save();
     ctx.scale(canvas.width, canvas.width);
+
+    // Sky
     ctx.fillStyle = colors[10];
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -196,15 +204,21 @@ const draw = () => {
         ctx.translate(e.pos.x, e.pos.y);
         ctx.rotate(e.rot);
         ctx.lineJoin = ctx.lineCap = "round";
+        ctx.textAlign = "center";
         for (const shape of e.shapes) {
+            ctx.strokeStyle = ctx.fillStyle = colors[shape.color];
+            ctx.lineWidth = shape.w ?? .15;
+            if (shape.t != null) {
+                ctx.font = `bold ${ctx.lineWidth}px monospace`;
+                ctx.fillText(shape.t, shape.x[0], shape.y[0]);
+                continue;
+            }
             ctx.beginPath();
             ctx.moveTo(shape.x[0], shape.y[0]);
             for (let i = 1; i < shape.x.length - 1; i++) {
                 ctx.lineTo(shape.x[i], shape.y[i]);
             }
             ctx.lineTo(shape.x[shape.x.length - 1], shape.y[shape.y.length - 1]);
-            ctx.strokeStyle = ctx.fillStyle = colors[shape.color];
-            ctx.lineWidth = shape.w ?? .15;
             if (shape.fill) {
                 ctx.closePath();
                 ctx.fill();
