@@ -1,6 +1,6 @@
 class Vec {
     static zero() {
-        return {x: 0, y: 0};
+        return { x: 0, y: 0 };
     }
 
     static equal(a, b) {
@@ -8,15 +8,15 @@ class Vec {
     }
 
     static add(a, b) {
-        return {x: a.x + b.x, y: a.y + b.y};
+        return { x: a.x + b.x, y: a.y + b.y };
     }
 
     static subtract(a, b) {
-        return {x: a.x - b.x, y: a.y - b.y};
+        return { x: a.x - b.x, y: a.y - b.y };
     }
 
     static multiply(a, b) {
-        return {x: a.x * b.x, y: a.y * b.y};
+        return { x: a.x * b.x, y: a.y * b.y };
     }
 
     static dot(a, b) {
@@ -28,7 +28,7 @@ class Vec {
     }
 
     static scale(vec, fac) {
-        return {x: vec.x * fac, y: vec.y * fac};
+        return { x: vec.x * fac, y: vec.y * fac };
     }
 
     static rotate(vec, rad) {
@@ -57,11 +57,11 @@ class Vec {
     }
 
     static floor(vec) {
-        return {x: Math.floor(vec.x), y: Math.floor(vec.y)};
+        return { x: Math.floor(vec.x), y: Math.floor(vec.y) };
     }
 
     static flip(vec) {
-        return {x: vec.y, y: vec.x};
+        return { x: vec.y, y: vec.x };
     }
 
     static distance(a, b) {
@@ -70,5 +70,9 @@ class Vec {
 
     static distance2(a, b) {
         return Vec.length2(Vec.subtract(b, a));
+    }
+
+    static limit(vec, l) {
+        return Vec.scale(Vec.normalize(vec), Math.min(l, Vec.length(vec)));
     }
 }

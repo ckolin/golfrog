@@ -174,7 +174,7 @@ const draw = () => {
     ctx.restore(); // Ground clip
 
     // Drag direction
-    const drag = Vec.subtract(input.dragEnd, input.dragStart);
+    const drag = Vec.limit(Vec.subtract(input.dragEnd, input.dragStart), .8);
     const showDrag = player.grounded && Vec.length(drag) > .01;
     if (showDrag) {
         ctx.save();
@@ -394,19 +394,17 @@ const getScreenCoords = (e) => ({
     x: e.offsetX / canvas.width,
     y: e.offsetY / canvas.height
 });
-canvas.addEventListener("mousedown", (e) => {
+document.body.addEventListener("pointerdown", (e) => {
     input.primary = true;
     input.dragStart = input.dragEnd = getScreenCoords(e);
 });
-canvas.addEventListener("mousemove", (e) => {
+canvas.addEventListener("pointermove", (e) => {
     if (input.primary) {
         input.dragEnd = getScreenCoords(e);
     }
 });
-canvas.addEventListener("mouseup", () => input.primary = false);
-canvas.addEventListener("mouseleave", () => {
-    input.primary = false;
-    input.dragStart = input.dragEnd;
+canvas.addEventListener("pointerup", () => {
+    input.primary = false
 });
 document.addEventListener("blur", () => input.paused = true);
 document.addEventListener("focus", () => input.paused = false);
