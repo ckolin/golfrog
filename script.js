@@ -87,7 +87,7 @@ const flag = {
 };
 
 const cloud = {
-    pos: { x: 5, y: -3 },
+    pos: { x: 6, y: -3 },
     shapes: [
         {
             x: [-1.5],
@@ -118,6 +118,7 @@ let entities = [flag, player, cloud];
 const ground = (x) => 0.8 - 0.5 * Math.sin(x) + 0.5 * Math.sin(0.2 * x);
 
 const input = {
+    paused: false,
     primary: false,
     dragStart: Vec.zero(),
     dragEnd: Vec.zero(),
@@ -298,6 +299,10 @@ const update = () => {
     const dt = (now - last) / 1000;
     last = now;
 
+    if (input.paused) {
+        return;
+    }
+
     // Check if player has stopped on ground
     player.grounded = player.pos.y >= ground(player.pos.x)
         && Vec.length(player.vel) < .1;
@@ -401,12 +406,12 @@ canvas.addEventListener("mousemove", (e) => {
         input.dragEnd = getScreenCoords(e);
     }
 });
-canvas.addEventListener("mouseup", (e) => {
-    input.primary = false;
-});
+canvas.addEventListener("mouseup", () => input.primary = false);
 canvas.addEventListener("mouseleave", () => {
     input.primary = false;
     input.dragStart = input.dragEnd;
 });
+document.addEventListener("blur", () => input.paused = true);
+document.addEventListener("focus", () => input.paused = false);
 
 draw();
