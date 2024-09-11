@@ -31,9 +31,9 @@ const player = {
     rot: 0,
     damping: .8,
     gravity: 10,
-    collision: {
-        bounce: .3,
-        friction: .0,
+    physics: {
+        bounce: 0,
+        friction: 0,
     },
     jump: 30,
     shapes: [
@@ -278,7 +278,7 @@ const update = () => {
                 vel,
                 gravity: 2,
                 damping: .3,
-                collision: {
+                physics: {
                     bounce: 0,
                     friction: 1e-5,
                 },
@@ -321,7 +321,7 @@ const update = () => {
         e.pos = Vec.add(e.pos, Vec.scale(e.vel, dt));
     }
     // Ground collision
-    for (const e of entities.filter(e => e.collision)) {
+    for (const e of entities.filter(e => e.physics)) {
         const x = .01;
         const y = ground(e.pos.x + x) - ground(e.pos.x);
         const g = Vec.normalize({ x, y });
@@ -331,7 +331,7 @@ const update = () => {
             const ref = Vec.add(e.vel, Vec.scale(normal, -2 * Vec.dot(e.vel, normal)));
             const a = Vec.angle(g);
             const rot = Vec.rotate(ref, -a);
-            e.vel = Vec.rotate({ x: e.collision.friction ** dt * rot.x, y: e.collision.bounce * rot.y }, a);
+            e.vel = Vec.rotate({ x: e.physics.friction ** dt * rot.x, y: e.physics.bounce * rot.y }, a);
         }
     }
     // Damping
