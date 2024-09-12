@@ -393,20 +393,24 @@ const update = () => {
 };
 
 const getScreenCoords = (e) => ({
-    x: e.offsetX / canvas.width,
-    y: e.offsetY / canvas.height
+    x: e.pageX / canvas.width,
+    y: e.pageY / canvas.height
 });
-document.body.addEventListener("pointerdown", (e) => {
+document.addEventListener("pointerdown", (e) => {
     input.primary = true;
     input.dragStart = input.dragEnd = getScreenCoords(e);
 });
-canvas.addEventListener("pointermove", (e) => {
+document.addEventListener("pointermove", (e) => {
     if (input.primary) {
         input.dragEnd = getScreenCoords(e);
     }
 });
-canvas.addEventListener("pointerup", () => {
+document.addEventListener("pointerup", () => {
     input.primary = false
+});
+document.addEventListener("pointercancel", () => {
+    input.primary = false;
+    input.dragEnd = input.dragStart;
 });
 document.addEventListener("blur", () => input.paused = true);
 document.addEventListener("focus", () => input.paused = false);
