@@ -4,6 +4,9 @@ const ctx = canvas.getContext("2d", {
     desynchronized: true,
 });
 const overlay = document.getElementById("overlay");
+const score = document.getElementById("score");
+const hole = document.getElementById("hole");
+const message = document.getElementById("message");
 
 const dbg = {};
 
@@ -159,8 +162,8 @@ const cloud = {
     ],
 };
 
-const star = {
-    star: { x: 5, y: 0 },
+const createStar = (pos) => ({
+    star: pos,
     pos: Vec.zero(),
     age: 0,
     shapes: [
@@ -173,9 +176,15 @@ const star = {
         }
     ],
     shadow: .15,
+});
+
+const state = {
+    hole: 1,
+    score: 0,
+    message: "Drag to jump",
 };
 
-let entities = [flag, player, cloud, star];
+let entities = [flag, player, cloud, createStar({ x: 5, y: 0 })];
 
 const ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
 
@@ -188,6 +197,11 @@ const input = {
 
 const draw = () => {
     update();
+
+    // Overlay
+    score.innerText = state.score;
+    hole.innerText = `${state.hole}/13`;
+    message.innerText = state.message;
 
     // Screen coordinates
     ctx.save();
