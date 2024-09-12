@@ -35,7 +35,7 @@ const player = {
         bounce: 0,
         friction: 0,
     },
-    jump: 30,
+    jump: 20,
     shapes: [
         {
             x: [-.3, 0, .3],
@@ -121,7 +121,7 @@ const cloud = {
 
 let entities = [flag, player, cloud];
 
-const ground = (x) => 0.8 - 0.5 * Math.sin(x) + 0.5 * Math.sin(0.2 * x);
+const ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
 
 const input = {
     paused: false,
@@ -243,9 +243,9 @@ const draw = () => {
     if (showDrag) {
         ctx.save();
         ctx.fillStyle = colors[0];
-        const dt = .02 / Vec.length(drag);
         let { pos } = player;
-        let vel = Vec.add(player.vel, Vec.scale(drag, player.jump));
+        let vel = Vec.scale(drag, player.jump);
+        const dt = .5 / Vec.length(vel);
         let dist = .1;
         for (let i = 0; i < 10; i++) {
             pos = Vec.add(pos, Vec.scale(vel, dt));
