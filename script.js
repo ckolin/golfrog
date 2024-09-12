@@ -158,7 +158,23 @@ const cloud = {
     ],
 };
 
-let entities = [flag, player, cloud];
+const star = {
+    star: { x: 5, y: 0 },
+    pos: Vec.zero(),
+    age: 0,
+    shapes: [
+        {
+            x: [0, -.07, -.26, -.12, -.16, 0, .16, .12, .26, .07],
+            y: [-.5, -.32, -.3, -.18, 0, -.09, 0, -.18, -.3, -.32],
+            w: .1,
+            color: 1,
+            fill: true,
+        }
+    ],
+    shadow: .15,
+};
+
+let entities = [flag, player, cloud, star];
 
 const ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
 
@@ -419,7 +435,12 @@ const update = () => {
     }
 
     // Flag animation
-    flag.rot = .1 * Math.sin(flag.age);
+    flag.rot = .1 * Math.sin(1.5 * flag.age);
+
+    // Star animation
+    for (const e of entities.filter(e => e.star)) {
+        e.pos = Vec.add(e.star, { x: 0, y: .05 * Math.sin(2 * e.age) });
+    }
 
     // Age
     for (const e of entities.filter(e => e.age != null)) {
