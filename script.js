@@ -257,7 +257,7 @@ const draw = () => {
 
     // Drag direction
     const drag = Vec.limit(Vec.subtract(input.dragEnd, input.dragStart), .8);
-    const showDrag = player.grounded && Vec.length(drag) > .01;
+    const showDrag = !state.won && player.grounded && Vec.length(drag) > .01;
     if (showDrag) {
         ctx.save();
         ctx.translate(player.pos.x, player.pos.y - .2);
@@ -418,7 +418,7 @@ const update = () => {
     // Detect drag
     if (!input.primary) {
         const drag = Vec.subtract(input.dragEnd, input.dragStart);
-        if (player.grounded && Vec.length(drag) > .02) {
+        if (!state.won && player.grounded && Vec.length(drag) > .02) {
             state.strokes++;
             player.vel = Vec.add(player.vel, Vec.scale(drag, player.jump));
         }
@@ -452,6 +452,7 @@ const update = () => {
             });
         }
         flag.pos = Vec.add(flag.pos, { x: 10, y: 0 });
+        state.won = true;
     }
 
     // Flag animation
