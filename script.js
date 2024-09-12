@@ -3,6 +3,7 @@ const ctx = canvas.getContext("2d", {
     alpha: false,
     desynchronized: true,
 });
+const overlay = document.getElementById("overlay");
 
 const dbg = {};
 
@@ -545,8 +546,11 @@ const resize = () => {
     const unit = 32;
     const size = Math.min(Math.floor(Math.min(window.innerWidth, window.innerHeight) / unit), 24);
     canvas.width = canvas.height = size * unit;
-    canvas.style.left = `${(window.innerWidth - canvas.width) / 2}px`;
-    canvas.style.top = `${(window.innerHeight - canvas.height) / 2}px`;
+    overlay.style.width = overlay.style.height = `${canvas.width}px`;
+    overlay.style.left =
+        canvas.style.left = `${(window.innerWidth - canvas.width) / 2}px`;
+    overlay.style.top =
+        canvas.style.top = `${(window.innerHeight - canvas.height) / 2}px`;
 };
 window.addEventListener("resize", resize);
 

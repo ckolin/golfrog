@@ -1,3 +1,7 @@
+* {
+	box-sizing: border-box;
+}
+
 body {
 	background: #111;
 	margin: 0;
@@ -10,6 +14,27 @@ canvas {
 	border-radius: 4vmin;
 	box-shadow: 1vmin 1vmin 4vmin rgba(0, 0, 0, 0.3);
 	animation: 1s ease-out 1 fadeIn;
+}
+
+#overlay {
+	display: flex;
+	justify-content: space-between;
+	position: absolute;
+	pointer-events: none;
+	color: #fff9;
+	padding: 3vmin;
+	font-family: Bahnschrift, "DIN Alternate", "Franklin Gothic Medium", "Nimbus Sans Narrow", sans-serif-condensed, sans-serif;
+	text-transform: uppercase;
+	font-size: 3vmin;
+}
+
+p {
+	margin: 0;
+}
+
+b {
+	font-weight: normal;
+	color: #fff;
 }
 
 @keyframes fadeIn {
