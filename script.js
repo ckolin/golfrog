@@ -4,8 +4,9 @@ const ctx = canvas.getContext("2d", {
     desynchronized: true,
 });
 const overlay = document.getElementById("overlay");
-const score = document.getElementById("score");
 const hole = document.getElementById("hole");
+const strokes = document.getElementById("strokes");
+const stars = document.getElementById("stars");
 const message = document.getElementById("message");
 
 const dbg = {};
@@ -180,27 +181,30 @@ const createStar = (pos) => ({
 
 const state = {
     hole: 1,
-    score: 0,
+    strokes: 0,
+    stars: 0,
     message: "Drag to jump",
+    won: false,
+    paused: false,
 };
 
-let entities = [flag, player, cloud, createStar({ x: 5, y: 0 })];
-
-const ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
-
 const input = {
-    paused: false,
     primary: false,
     dragStart: Vec.zero(),
     dragEnd: Vec.zero(),
 };
 
+// Level
+let entities = [flag, player, cloud, createStar({ x: 5, y: 0 })];
+let ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
+
 const draw = () => {
     update();
 
     // Overlay
-    score.innerText = state.score;
     hole.innerText = `${state.hole}/13`;
+    strokes.innerText = state.strokes;
+    stars.innerText = state.stars;
     message.innerText = state.message;
 
     // Screen coordinates
@@ -397,7 +401,7 @@ const update = () => {
     const dt = (now - last) / 1000;
     last = now;
 
-    if (input.paused) {
+    if (state.paused) {
         return;
     }
 
@@ -415,6 +419,7 @@ const update = () => {
     if (!input.primary) {
         const drag = Vec.subtract(input.dragEnd, input.dragStart);
         if (player.grounded && Vec.length(drag) > .02) {
+            state.strokes++;
             player.vel = Vec.add(player.vel, Vec.scale(drag, player.jump));
         }
         input.dragStart = input.dragEnd = Vec.zero();
@@ -484,6 +489,7 @@ const update = () => {
                 });
             }
             e.ttl = 0;
+            state.stars++;
         }
     }
 
@@ -552,8 +558,8 @@ document.addEventListener("pointercancel", () => {
     input.primary = false;
     input.dragEnd = input.dragStart;
 });
-document.addEventListener("blur", () => input.paused = true);
-document.addEventListener("focus", () => input.paused = false);
+document.addEventListener("blur", () => state.paused = true);
+document.addEventListener("focus", () => state.paused = false);
 
 // Canvas resizing
 const resize = () => {
