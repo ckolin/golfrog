@@ -13,6 +13,19 @@ const colors = [
     "#7f3355", "#000000", "#114c77", "#8891aa",
 ];
 
+// Seeded random number generator
+const seed = dbg.seed = Date.now();
+const seededRandom = (s) => {
+    const random = (from = 0, to = 1) => {
+        const value = (2 ** 31 - 1 & (s = Math.imul(48271, s + seed))) / 2 ** 31;
+        return from + value * (to - from);
+    };
+    for (let i = 0; i < 20; i++) {
+        random();
+    }
+    return random;
+};
+
 const camera = {
     pos: { x: 5, y: -2 },
     vel: Vec.zero(),
@@ -29,6 +42,7 @@ const player = {
     pos: { x: 1, y: 0 },
     vel: Vec.zero(),
     rot: 0,
+    age: 0,
     damping: .8,
     gravity: 10,
     physics: {
@@ -192,11 +206,34 @@ const draw = () => {
         ctx.restore();
     }
 
+    // Dive streaks
+    if (player.diving) {
+        const streaks = 5;
+        const rand = seededRandom(Math.round(20 * player.age));
+        for (let i = 0; i < streaks; i++) {
+            ctx.save();
+            ctx.translate(.5 * (rand() - .5), .5 * (rand() - .5));
+            ctx.beginPath();
+            const start = Vec.add(
+                Vec.add(player.pos, Vec.scale(Vec.normalize(player.vel), -.3)),
+                { x: 0, y: -.3 });
+            const end = Vec.subtract(start, Vec.scale(Vec.normalize(player.vel), .1 + .05 * Vec.length(player.vel)));
+            ctx.moveTo(start.x, start.y);
+            ctx.lineTo(end.x, end.y);
+            ctx.strokeStyle = colors[0];
+            ctx.lineCap = "round";
+            ctx.lineWidth = .1;
+            ctx.globalAlpha = (i + 1) / streaks;
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+
     // Shapes
     for (const e of entities.filter(e => e.shapes)) {
         ctx.save();
         ctx.translate(e.pos.x, e.pos.y);
-        ctx.rotate(e.rot);
+        ctx.rotate(e.rot ?? 0);
         ctx.lineJoin = ctx.lineCap = "round";
         for (const shape of e.shapes) {
             ctx.beginPath();
@@ -306,6 +343,20 @@ const update = () => {
     player.grounded = player.pos.y >= ground(player.pos.x)
         && Vec.length(player.vel) * dt < .01;
 
+    // Detect dive
+    player.diving = !player.grounded && input.primary;
+    player.gravity = player.diving ? 30 : 10;
+    player.physics.bounce = player.diving ? .9 : 0;
+
+    // Detect drag
+    if (!input.primary) {
+        const drag = Vec.subtract(input.dragEnd, input.dragStart);
+        if (player.grounded && Vec.length(drag) > .02) {
+            player.vel = Vec.add(player.vel, Vec.scale(drag, player.jump));
+        }
+        input.dragStart = input.dragEnd = Vec.zero();
+    }
+
     // Win condition
     if (Vec.distance(player.pos, flag.pos) < .5) {
         const pos = Vec.add(flag.pos, { x: 0, y: -.2 });
@@ -337,15 +388,6 @@ const update = () => {
 
     // Flag animation
     flag.rot = .1 * Math.sin(flag.age);
-
-    // Detect drag
-    if (!input.primary) {
-        const drag = Vec.subtract(input.dragEnd, input.dragStart);
-        if (player.grounded && Vec.length(drag) > .02) {
-            player.vel = Vec.add(player.vel, Vec.scale(drag, player.jump));
-        }
-        input.dragStart = input.dragEnd = Vec.zero();
-    }
 
     // Age
     for (const e of entities.filter(e => e.age != null)) {
