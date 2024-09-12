@@ -136,8 +136,8 @@ const flag = {
     shadow: .1,
 };
 
-const cloud = {
-    pos: { x: 6, y: -3 },
+const createCloud = (pos) => ({
+    pos,
     shapes: [
         {
             x: [-1.5],
@@ -161,7 +161,7 @@ const cloud = {
             color: 11,
         },
     ],
-};
+});
 
 const createStar = (pos) => ({
     star: pos,
@@ -195,7 +195,7 @@ const input = {
 };
 
 // Level
-let entities = [flag, player, cloud, createStar({ x: 5, y: 0 })];
+let entities = [flag, player, createCloud({ x: 6, y: -3 }), createStar({ x: 5, y: 0 })];
 let ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
 
 const draw = () => {
