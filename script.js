@@ -255,9 +255,9 @@ const draw = () => {
 
     // Dive streaks
     if (player.diving) {
-        const streaks = 5;
+        const n = 5;
         const rand = seededRandom(Math.round(20 * player.age));
-        for (let i = 0; i < streaks; i++) {
+        for (let i = 0; i < n; i++) {
             ctx.save();
             ctx.translate(.5 * (rand() - .5), .5 * (rand() - .5));
             ctx.beginPath();
@@ -270,7 +270,7 @@ const draw = () => {
             ctx.strokeStyle = colors[0];
             ctx.lineCap = "round";
             ctx.lineWidth = .1;
-            ctx.globalAlpha = (i + 1) / streaks;
+            ctx.globalAlpha = (i + 1) / n;
             ctx.stroke();
             ctx.restore();
         }
@@ -421,7 +421,7 @@ const update = () => {
                 damping: .3,
                 physics: {
                     bounce: 0,
-                    friction: 1e-5,
+                    friction: 0,
                 },
                 age: 0,
                 ttl: 2 * (Math.random() + .2),
@@ -442,10 +442,40 @@ const update = () => {
         e.pos = Vec.add(e.star, { x: 0, y: .05 * Math.sin(2 * e.age) });
     }
 
+    // Star collection
+    for (const e of entities.filter(e => e.star)) {
+        if (Vec.distance(player.pos, e.star) < .5) {
+            const pos = Vec.add(e.star, { x: 0, y: -.2 });
+            const n = 10;
+            for (let i = 0; i < n; i++) {
+                const vel = Vec.scale(
+                    Vec.rotate({ x: 1, y: 0 }, 2 * Math.PI * i / n),
+                    1.5);
+                entities.push({
+                    pos,
+                    vel,
+                    gravity: 1,
+                    damping: .3,
+                    physics: {
+                        bounce: 0,
+                        friction: 0,
+                    },
+                    age: 0,
+                    ttl: .5 * (Math.random() + .5),
+                    particle: {
+                        size: .07,
+                        color: 1,
+                    },
+                });
+            }
+            e.ttl = 0;
+        }
+    }
+
     // Age
     for (const e of entities.filter(e => e.age != null)) {
         e.age += dt;
-        if (e.ttl && e.age > e.ttl) {
+        if (e.ttl != null && e.age > e.ttl) {
             e.kill = true;
         }
     }
