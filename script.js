@@ -38,8 +38,66 @@ const worldToScreen = (pos) => Vec.add(
     Vec.scale(Vec.subtract(pos, camera.pos), camera.size ** -1),
     { x: .5, y: .5 });
 
+const playerTriangle = [
+    {
+        x: [-.3, 0, .3],
+        y: [0, -.5, 0],
+        color: 2,
+        fill: true,
+    }, {
+        x: [-.12],
+        y: [-.55],
+        w: .2,
+        color: 0,
+    }, {
+        x: [.12],
+        y: [-.55],
+        w: .2,
+        color: 0,
+    }, {
+        x: [-.1],
+        y: [-.55],
+        w: .1,
+        color: 9,
+    }, {
+        x: [.1],
+        y: [-.55],
+        w: .1,
+        color: 9,
+    }
+];
+
+const playerCircle = [
+    {
+        x: [0],
+        y: [-.25],
+        w: .7,
+        color: 2,
+    }, {
+        x: [-.12],
+        y: [-.55],
+        w: .2,
+        color: 0,
+    }, {
+        x: [.12],
+        y: [-.55],
+        w: .2,
+        color: 0,
+    }, {
+        x: [-.1],
+        y: [-.55],
+        w: .1,
+        color: 9,
+    }, {
+        x: [.1],
+        y: [-.55],
+        w: .1,
+        color: 9,
+    }
+];
+
 const player = {
-    pos: { x: 1, y: 0 },
+    pos: { x: 1.5, y: 0 },
     vel: Vec.zero(),
     rot: 0,
     age: 0,
@@ -50,35 +108,8 @@ const player = {
         friction: 0,
     },
     jump: 20,
-    shapes: [
-        {
-            x: [-.3, 0, .3],
-            y: [0, -.5, 0],
-            color: 2,
-            fill: true,
-        }, {
-            x: [-.12],
-            y: [-.55],
-            w: .2,
-            color: 0,
-        }, {
-            x: [.12],
-            y: [-.55],
-            w: .2,
-            color: 0,
-        }, {
-            x: [-.1],
-            y: [-.55],
-            w: .1,
-            color: 9,
-        }, {
-            x: [.1],
-            y: [-.55],
-            w: .1,
-            color: 9,
-        }
-    ],
-    shadow: 0.25,
+    shapes: playerTriangle,
+    shadow: .25,
 };
 
 const flag = {
@@ -97,7 +128,7 @@ const flag = {
             fill: true,
         }
     ],
-    shadow: 0.1,
+    shadow: .1,
 };
 
 const cloud = {
@@ -347,6 +378,7 @@ const update = () => {
     player.diving = !player.grounded && input.primary;
     player.gravity = player.diving ? 30 : 10;
     player.physics.bounce = player.diving ? .9 : 0;
+    player.shapes = player.diving ? playerCircle : playerTriangle;
 
     // Detect drag
     if (!input.primary) {
