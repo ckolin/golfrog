@@ -102,7 +102,7 @@ const playerCircle = [
 ];
 
 const player = {
-    pos: { x: 1.5, y: 0 },
+    pos: Vec.zero(),
     vel: Vec.zero(),
     rot: 0,
     age: 0,
@@ -118,7 +118,7 @@ const player = {
 };
 
 const flag = {
-    pos: { x: 8, y: 0 },
+    pos: Vec.zero(),
     stick: true,
     age: 0,
     shapes: [
@@ -183,7 +183,7 @@ const state = {
     hole: 1,
     strokes: 0,
     stars: 0,
-    message: "Drag to jump",
+    message: "",
     won: false,
     paused: false,
 };
@@ -194,9 +194,27 @@ const input = {
     dragEnd: Vec.zero(),
 };
 
-// Level
-let entities = [flag, player, createCloud({ x: 6, y: -3 }), createStar({ x: 5, y: 0 })];
-let ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
+let entities = [];
+let ground = null;
+
+const startHole = (h) => {
+    state.hole = h;
+    entities = [flag, player];
+    if (h === 1) {
+        player.pos = { x: 1.5, y: 0 };
+        flag.pos = { x: 8, y: 0 };
+        state.message = "Drag to jump";
+        entities.push(createCloud({ x: 6, y: -3 }));
+        ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
+    } else if (h === 2) {
+        player.pos = { x: 1.5, y: 0 };
+        flag.pos = { x: 8, y: 0 };
+        state.message = "Collect stars";
+        entities.push(createCloud({ x: 6, y: -3 }));
+        entities.push(createStar({ x: 5, y: 0 }));
+        ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
+    }
+};
 
 const draw = () => {
     update();
@@ -576,4 +594,5 @@ const resize = () => {
 window.addEventListener("resize", resize);
 
 resize();
+startHole(1);
 draw();
