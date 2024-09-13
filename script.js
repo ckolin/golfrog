@@ -185,7 +185,7 @@ const createStar = (pos) => ({
 });
 
 const state = {
-    hole: 13, // TODO
+    hole: 1,
     jumps: 0,
     totalJumps: 0,
     stars: 0,
@@ -228,7 +228,7 @@ const startHole = (h) => {
         entities.push(createCloud({ x: 5.5, y: -3.5 }));
         ground = (x) => .5 - .9 * Math.sin(x) - .5 * Math.sin(.2 * x);
     } else if (h === 3) {
-        state.message = "Hold during jump to bounce";
+        state.message = "Tap & hold while\njumping to bounce";
         player.pos = { x: Math.PI / 2, y: 1 };
         flag.pos = { x: 2.5 * Math.PI, y: 0 };
         entities.push(createStar({ x: 4, y: 1.3 }));
@@ -378,12 +378,10 @@ const draw = () => {
     // Menu
     const showMenu = state.won && state.wonAge > 1;
     menu.style.display = showMenu ? "block" : "none";
+    overlay.style.background = showMenu ? "#0008" : "#0000";
 
     // Game over
     gameover.style.display = state.gameover ? "block" : "none";
-
-    // Background
-    overlay.style.background = showMenu || state.gameover ? "#0008" : "#0000";
 
     // Screen coordinates
     ctx.save();
@@ -589,16 +587,39 @@ const update = () => {
 
     // Game over
     for (const e of entities.filter(e => e.trap)) {
-        if (Vec.distance(player.pos, e.pos) < 1) {
+        if (!state.gameover && Vec.distance(player.pos, e.pos) < 1) {
             state.gameover = true;
-            entities.push({
-                pos: { x: 3, y: 5 },
-                snake: Array(10).fill({ x: 3, y: 5 }),
+            entities = entities.filter(e => e !== player);
+            entities.unshift({
+                pos: { x: 3, y: 8 },
+                vel: { x: 0, y: -50 },
+                damping: .01,
+                gravity: 20,
+                shapes: [
+                    {
+                        x: [-1, 0, 1, 1.5, 0, 0, -.5],
+                        y: [-3, -1, -4, -1, 20, 20, 0],
+                        color: 8,
+                        fill: true,
+                    }, {
+                        x: [1],
+                        y: [-1],
+                        w: .5,
+                        color: 0,
+                    }, {
+                        x: [.9],
+                        y: [-1.1],
+                        w: .3,
+                        color: 9,
+                    }
+                ],
             });
+            entities.unshift(player);
         }
     }
     if (state.gameover) {
         dt *= .1;
+        player.vel.x *= .01 ** dt;
     }
 
     // Check out of bounds
