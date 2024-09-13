@@ -42,6 +42,10 @@ b {
 	color: #fff;
 }
 
+#message {
+	text-align: right;
+}
+
 #menu {
 	flex-grow: 1;
 	align-content: center;

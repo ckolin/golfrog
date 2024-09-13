@@ -181,9 +181,11 @@ const createStar = (pos) => ({
 });
 
 const state = {
-    hole: 1,
+    hole: 3, // TODO
     strokes: 0,
+    totalStrokes: 0,
     stars: 0,
+    totalStars: 0,
     message: "",
     won: false,
     wonAge: 0,
@@ -201,35 +203,47 @@ let ground = null;
 
 const startHole = (h) => {
     state.hole = h;
+    state.strokes = state.stars = 0;
     state.won = false;
     state.wonAge = 0;
     entities = [flag, player];
     if (h === 1) {
-        player.pos = { x: 1.5, y: 0 };
-        flag.pos = { x: 8, y: 0 };
+        player.pos = { x: Math.PI / 2, y: 0 };
+        flag.pos = { x: 2.5 * Math.PI, y: 0 };
         state.message = "Drag to jump";
-        entities.push(createCloud({ x: 6, y: -3 }));
-        ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
+        ground = (x) => .8 - .5 * Math.sin(x);
     } else if (h === 2) {
-        player.pos = { x: 1.5, y: 0 };
-        flag.pos = { x: 8, y: 0 };
+        player.pos = { x: Math.PI / 2, y: 0 };
+        flag.pos = { x: 2.5 * Math.PI, y: 0 };
         state.message = "Collect stars";
-        entities.push(createCloud({ x: 6, y: -3 }));
-        entities.push(createStar({ x: 5, y: 0 }));
+        entities.push(createCloud({ x: 5.5, y: -3.5 }));
+        entities.push(createStar({ x: 3, y: -1.8 }));
+        entities.push(createStar({ x: 4.5, y: -2.3 }));
+        entities.push(createStar({ x: 6, y: -1.8 }));
         ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
+    } else if (h === 3) {
+        player.pos = { x: Math.PI / 2, y: 1 };
+        flag.pos = { x: 2.5 * Math.PI, y: 0 };
+        state.message = "Hold during jump to bounce";
+        entities.push(createStar({ x: 4, y: 1 }));
+        ground = (x) => 1 - .3 * Math.sin(x);
     }
 };
 
 const retryHole = () => startHole(state.hole);
-const nextHole = () => startHole(state.hole + 1);
+const nextHole = () => {
+    state.totalStrokes += state.strokes;
+    state.totalStars += state.stars;
+    startHole(state.hole + 1);
+};
 
 const draw = () => {
     update();
 
     // HUD
     hole.innerText = `${state.hole}/13`;
-    strokes.innerText = state.strokes;
-    stars.innerText = state.stars;
+    strokes.innerText = state.strokes + state.totalStrokes;
+    stars.innerText = state.stars + state.totalStars;
     message.innerText = state.message;
 
     // Menu
@@ -611,5 +625,5 @@ const resize = () => {
 window.addEventListener("resize", resize);
 
 resize();
-startHole(1);
+startHole(state.hole);
 draw();
