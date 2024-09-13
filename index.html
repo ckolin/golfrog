@@ -11,13 +11,18 @@
 <body>
 	<canvas id="canvas"></canvas>
 	<div id="overlay">
-		<div>
+		<div id="hud">
 			<p>
 				Hole <b id="hole"></b><br>
 				Strokes <b id="strokes"></b><br>
 				Stars <b id="stars"></b>
 			</p>
 			<p id="message"></p>
+		</div>
+		<div id="menu">
+			<button onclick="retryHole()">↺ Retry</button><br>
+			<br>
+			<button onclick="nextHole()">🡒 Continue</button>
 		</div>
 	</div>
 	<script src="zzfxm.js"></script>

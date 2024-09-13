@@ -8,6 +8,7 @@ const hole = document.getElementById("hole");
 const strokes = document.getElementById("strokes");
 const stars = document.getElementById("stars");
 const message = document.getElementById("message");
+const menu = document.getElementById("menu");
 
 const dbg = {};
 
@@ -185,6 +186,7 @@ const state = {
     stars: 0,
     message: "",
     won: false,
+    wonAge: 0,
     paused: false,
 };
 
@@ -199,6 +201,8 @@ let ground = null;
 
 const startHole = (h) => {
     state.hole = h;
+    state.won = false;
+    state.wonAge = 0;
     entities = [flag, player];
     if (h === 1) {
         player.pos = { x: 1.5, y: 0 };
@@ -216,14 +220,21 @@ const startHole = (h) => {
     }
 };
 
+const retryHole = () => startHole(state.hole);
+const nextHole = () => startHole(state.hole + 1);
+
 const draw = () => {
     update();
 
-    // Overlay
+    // HUD
     hole.innerText = `${state.hole}/13`;
     strokes.innerText = state.strokes;
     stars.innerText = state.stars;
     message.innerText = state.message;
+
+    // Menu
+    const showMenu = state.won && state.wonAge > 1;
+    menu.style.display = showMenu ? "block" : "none";
 
     // Screen coordinates
     ctx.save();
@@ -423,6 +434,10 @@ const update = () => {
         return;
     }
 
+    if (state.won) {
+        state.wonAge += dt;
+    }
+
     // Check if player has stopped on ground
     player.grounded = player.pos.y >= ground(player.pos.x)
         && Vec.length(player.vel) * dt < .01;
@@ -555,6 +570,7 @@ const update = () => {
     // Debugging
     dbg.dt = dt;
     dbg.input = input;
+    dbg.state = state;
 };
 
 const getScreenCoords = (e) => ({
