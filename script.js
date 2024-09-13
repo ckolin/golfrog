@@ -9,6 +9,7 @@ const jumps = document.getElementById("jumps");
 const stars = document.getElementById("stars");
 const message = document.getElementById("message");
 const menu = document.getElementById("menu");
+const gameover = document.getElementById("gameover");
 
 const dbg = {};
 
@@ -107,7 +108,7 @@ const player = {
     vel: Vec.zero(),
     rot: 0,
     age: 0,
-    damping: .8,
+    damping: .5,
     gravity: 10,
     physics: {
         bounce: 0,
@@ -184,7 +185,7 @@ const createStar = (pos) => ({
 });
 
 const state = {
-    hole: 11, // TODO
+    hole: 13, // TODO
     jumps: 0,
     totalJumps: 0,
     stars: 0,
@@ -216,16 +217,16 @@ const startHole = (h) => {
         state.message = "Drag to jump";
         player.pos = { x: Math.PI / 2, y: 0 };
         flag.pos = { x: 2.5 * Math.PI, y: 0 };
-        ground = (x) => .8 - .5 * Math.sin(x);
+        ground = (x) => .5 - .5 * Math.sin(x);
     } else if (h === 2) {
         state.message = "Collect stars\n (if you like)";
         player.pos = { x: Math.PI / 2, y: 0 };
         flag.pos = { x: 2.5 * Math.PI, y: 0 };
-        entities.push(createStar({ x: 3, y: -1.8 }));
+        entities.push(createStar({ x: 3, y: -1.5 }));
         entities.push(createStar({ x: 4.5, y: -2.3 }));
-        entities.push(createStar({ x: 6, y: -1.8 }));
+        entities.push(createStar({ x: 6, y: -1.5 }));
         entities.push(createCloud({ x: 5.5, y: -3.5 }));
-        ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
+        ground = (x) => .5 - .9 * Math.sin(x) - .5 * Math.sin(.2 * x);
     } else if (h === 3) {
         state.message = "Hold during jump to bounce";
         player.pos = { x: Math.PI / 2, y: 1 };
@@ -247,7 +248,7 @@ const startHole = (h) => {
         camera.pos = { x: 5.5, y: -2 };
         camera.size = 13;
         player.pos = { x: 1, y: 1 };
-        flag.pos = { x: 5.8, y: 0 };
+        flag.pos = { x: 5.5, y: 0 };
         entities.push(createStar({ x: 7, y: -1.5 }));
         entities.push(createStar({ x: 9, y: .5 }));
         entities.push(createCloud({ x: -1, y: -3 }));
@@ -273,9 +274,9 @@ const startHole = (h) => {
         entities.push(createStar({ x: 9, y: -1 }));
         entities.push(createCloud({ x: 3.5, y: -3.5 }));
         ground = (x) => .7 - 3 * Math.exp(-.5 * (x - 4.5) ** 2) - 4 * Math.exp(-.4 * (x - 10.5) ** 2);
-    } else if (h === 8) {
+    } else if (h === 5) {
         state.message = "Bounce, bounce, bounce";
-        camera.pos = { x: 8, y: -2.5 };
+        camera.pos = { x: 5, y: -2.5 };
         camera.size = 16;
         player.pos = { x: 1.05, y: 1 };
         flag.pos = { x: 13.6, y: 0 };
@@ -302,7 +303,7 @@ const startHole = (h) => {
         player.pos = { x: -1.5, y: 1 };
         flag.pos = { x: 10, y: 0 };
         entities.push(createStar({ x: 3, y: -3 }));
-        entities.push(createStar({ x: 8.5, y: 0 }));
+        entities.push(createStar({ x: 5.5, y: 0 }));
         entities.push(createCloud({ x: 9, y: -3 }));
         ground = (x) => - 1.5 * Math.exp(-2 * x ** 2) + 3 * (1 + Math.exp(-2 * x + 10)) ** -1 + Math.exp(-5 * (x - 10) ** 2);
     } else if (h === 11) {
@@ -315,6 +316,46 @@ const startHole = (h) => {
         entities.push(createStar({ x: -1, y: -7 }));
         entities.push(createCloud({ x: 1, y: -7 }));
         ground = (x) => -.12 * x ** 2 + .1 * Math.sin(2 * x);
+    } else if (h === 12) {
+        state.message = "Now where is that flag?";
+        camera.pos = { x: 7, y: -3 };
+        camera.size = 20;
+        player.pos = { x: -1, y: 1 };
+        flag.pos = { x: 10, y: 0 };
+        entities.push(createStar({ x: 1, y: .3 }));
+        entities.push(createStar({ x: 16, y: -2.4 }));
+        entities.push(createCloud({ x: 1.5, y: 1.2 }));
+        entities.push(createCloud({ x: 9, y: .5 }));
+        entities.push(createCloud({ x: 17, y: -1.5 }));
+        entities.push(createCloud({ x: 5, y: -3 }));
+        ground = (x) => .2 * Math.sin(2 * x) + .7 * Math.sin(.7 * x) - .1 * x;
+    } else if (h === 13) {
+        state.message = "What the ...?";
+        camera.pos = { x: 2, y: -1 };
+        camera.size = 12;
+        player.pos = { x: -1.5, y: 1 };
+        flag.pos = { x: 10, y: 0 };
+        entities.push({
+            trap: true,
+            pos: { x: 2.65, y: -1.55 },
+            rot: 1.8,
+            shapes: flag.shapes,
+        });
+        entities.push({
+            pos: { x: 3, y: -1.5 },
+            shapes: [
+                {
+                    x: [0, 0],
+                    y: [0, -2],
+                    w: .1,
+                    color: 9,
+                }
+            ],
+        });
+        entities.push(createCloud({ x: 3, y: -3 }));
+        entities.push(createCloud({ x: 7, y: -2 }));
+        entities.push(createCloud({ x: 3, y: 5.5 }));
+        ground = (x) => .8 * Math.sin(x) + 8 * Math.exp(-.3 * (x - 3.5) ** 2);
     }
 };
 
@@ -337,7 +378,12 @@ const draw = () => {
     // Menu
     const showMenu = state.won && state.wonAge > 1;
     menu.style.display = showMenu ? "block" : "none";
-    overlay.style.background = showMenu ? "#0008" : "#0000";
+
+    // Game over
+    gameover.style.display = state.gameover ? "block" : "none";
+
+    // Background
+    overlay.style.background = showMenu || state.gameover ? "#0008" : "#0000";
 
     // Screen coordinates
     ctx.save();
@@ -530,7 +576,7 @@ const draw = () => {
 let last = performance.now();
 const update = () => {
     const now = performance.now();
-    const dt = (now - last) / 1000;
+    let dt = (now - last) / 1000;
     last = now;
 
     if (state.paused) {
@@ -539,6 +585,20 @@ const update = () => {
 
     if (state.won) {
         state.wonAge += dt;
+    }
+
+    // Game over
+    for (const e of entities.filter(e => e.trap)) {
+        if (Vec.distance(player.pos, e.pos) < 1) {
+            state.gameover = true;
+            entities.push({
+                pos: { x: 3, y: 5 },
+                snake: Array(10).fill({ x: 3, y: 5 }),
+            });
+        }
+    }
+    if (state.gameover) {
+        dt *= .1;
     }
 
     // Check out of bounds

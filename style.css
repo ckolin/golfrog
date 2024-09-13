@@ -76,6 +76,12 @@ button:active {
 	color: #fff;
 }
 
+#gameover {
+	text-align: center;
+	color: #fff;
+	animation: 5s ease-out 1 fadeIn;
+}
+
 @keyframes fadeIn {
 	from {
 		opacity: 0;
