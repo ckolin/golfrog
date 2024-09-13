@@ -184,7 +184,7 @@ const createStar = (pos) => ({
 });
 
 const state = {
-    hole: 7, // TODO
+    hole: 10, // TODO
     jumps: 0,
     totalJumps: 0,
     stars: 0,
@@ -273,6 +273,38 @@ const startHole = (h) => {
         entities.push(createStar({ x: 9, y: -1 }));
         entities.push(createCloud({ x: 3.5, y: -3.5 }));
         ground = (x) => .7 - 3 * Math.exp(-.5 * (x - 4.5) ** 2) - 4 * Math.exp(-.4 * (x - 10.5) ** 2);
+    } else if (h === 8) {
+        state.message = "Bounce, bounce, bounce";
+        camera.pos = { x: 8, y: -2.5 };
+        camera.size = 16;
+        player.pos = { x: 1.05, y: 1 };
+        flag.pos = { x: 13.6, y: 0 };
+        entities.push(createStar({ x: 5.24, y: -.4 }));
+        entities.push(createStar({ x: 9.4, y: -.5 }));
+        entities.push(createCloud({ x: 11, y: -5 }));
+        ground = (x) => .7 - .2 * x ** .5 * Math.sin(1.5 * x);
+    } else if (h === 9) {
+        state.message = "Leap of faith";
+        camera.pos = { x: 7, y: -1 };
+        camera.size = 15;
+        player.pos = { x: 1, y: 1 };
+        flag.pos = { x: 12.5, y: 0 };
+        entities.push(createStar({ x: 2.5, y: -3 }));
+        entities.push(createStar({ x: 5, y: -.4 }));
+        entities.push(createStar({ x: 9, y: -1 }));
+        entities.push(createCloud({ x: 0, y: -2.5 }));
+        entities.push(createCloud({ x: 11, y: -4 }));
+        ground = (x) => 5 * (1 + Math.exp(-2 * x + 7)) ** -1;
+    } else if (h === 10) {
+        state.message = "Who put that there?";
+        camera.pos = { x: 4.5, y: -1 };
+        camera.size = 15;
+        player.pos = { x: -1.5, y: 1 };
+        flag.pos = { x: 10, y: 0 };
+        entities.push(createStar({ x: 3, y: -3 }));
+        entities.push(createStar({ x: 8.5, y: 0 }));
+        entities.push(createCloud({ x: 9, y: -3 }));
+        ground = (x) => - 1.5 * Math.exp(-2 * x ** 2) + 3 * (1 + Math.exp(-2 * x + 10)) ** -1 + Math.exp(-5 * (x - 10) ** 2);
     }
 };
 
