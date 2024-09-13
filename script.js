@@ -5,7 +5,7 @@ const ctx = canvas.getContext("2d", {
 });
 const overlay = document.getElementById("overlay");
 const hole = document.getElementById("hole");
-const strokes = document.getElementById("strokes");
+const jumps = document.getElementById("jumps");
 const stars = document.getElementById("stars");
 const message = document.getElementById("message");
 const menu = document.getElementById("menu");
@@ -113,7 +113,10 @@ const player = {
         bounce: 0,
         friction: 0,
     },
-    jump: 20,
+    jump: {
+        force: 20,
+        limit: .6,
+    },
     shapes: playerTriangle,
     shadow: .25,
 };
@@ -181,14 +184,16 @@ const createStar = (pos) => ({
 });
 
 const state = {
-    hole: 3, // TODO
-    strokes: 0,
-    totalStrokes: 0,
+    hole: 6, // TODO
+    jumps: 0,
+    totalJumps: 0,
     stars: 0,
     totalStars: 0,
     message: "",
     won: false,
     wonAge: 0,
+    outOfBounds: false,
+    outOfBoundsAge: 0,
     paused: false,
 };
 
@@ -203,7 +208,7 @@ let ground = null;
 
 const startHole = (h) => {
     state.hole = h;
-    state.strokes = state.stars = 0;
+    state.jumps = state.stars = 0;
     state.won = false;
     state.wonAge = 0;
     entities = [flag, player];
@@ -215,11 +220,11 @@ const startHole = (h) => {
     } else if (h === 2) {
         player.pos = { x: Math.PI / 2, y: 0 };
         flag.pos = { x: 2.5 * Math.PI, y: 0 };
-        state.message = "Collect stars";
-        entities.push(createCloud({ x: 5.5, y: -3.5 }));
+        state.message = "Collect stars\n (if you like)";
         entities.push(createStar({ x: 3, y: -1.8 }));
         entities.push(createStar({ x: 4.5, y: -2.3 }));
         entities.push(createStar({ x: 6, y: -1.8 }));
+        entities.push(createCloud({ x: 5.5, y: -3.5 }));
         ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
     } else if (h === 3) {
         player.pos = { x: Math.PI / 2, y: 1 };
@@ -227,12 +232,43 @@ const startHole = (h) => {
         state.message = "Hold during jump to bounce";
         entities.push(createStar({ x: 4, y: 1.3 }));
         ground = (x) => 1 + .5 * Math.exp(-1 * (x - 4.5) ** 2);
+    } else if (h === 4) {
+        camera.pos = { x: 4, y: -2 };
+        camera.size = 15;
+        player.pos = { x: -2, y: 1 };
+        flag.pos = { x: 7.5, y: 0 };
+        state.message = "Try to roll with it";
+        entities.push(createStar({ x: .5, y: .2 }));
+        entities.push(createStar({ x: 2.5, y: .6 }));
+        entities.push(createStar({ x: 4.5, y: -.2 }));
+        ground = (x) => .5 * Math.sin(x) + .5 * Math.sin(.5 * x);
+    } else if (h === 5) {
+        camera.pos = { x: 5.5, y: -2 };
+        camera.size = 13;
+        player.pos = { x: 1, y: 1 };
+        flag.pos = { x: 5.8, y: 0 };
+        state.message = "Can you do it in one jump?";
+        entities.push(createStar({ x: 7, y: -1.5 }));
+        entities.push(createStar({ x: 9, y: .5 }));
+        entities.push(createCloud({ x: -1, y: -3 }));
+        entities.push(createCloud({ x: 10, y: -4 }));
+        ground = (x) => .7 * Math.sin(x) + .5 * Math.sin(.5 * x - Math.PI);
+    } else if (h === 6) {
+        camera.pos = { x: 6.5, y: -3.5 };
+        camera.size = 13;
+        player.pos = { x: 1, y: 1 };
+        flag.pos = { x: 10, y: 0 };
+        state.message = "Precision is key";
+        entities.push(createStar({ x: 3, y: -5.5 }));
+        entities.push(createCloud({ x: 1.5, y: -3.5 }));
+        entities.push(createCloud({ x: 11.5, y: -3.3 }));
+        ground = (x) => .7 - 3 * Math.exp(-.5 * (x - 4.5) ** 2) - 6 * Math.exp(-.5 * (x - 10) ** 2);
     }
 };
 
 const retryHole = () => startHole(state.hole);
 const nextHole = () => {
-    state.totalStrokes += state.strokes;
+    state.totalJumps += state.jumps;
     state.totalStars += state.stars;
     startHole(state.hole + 1);
 };
@@ -242,7 +278,7 @@ const draw = () => {
 
     // HUD
     hole.innerText = `${state.hole}/13`;
-    strokes.innerText = state.strokes + state.totalStrokes;
+    jumps.innerText = state.jumps + state.totalJumps;
     stars.innerText = state.stars + state.totalStars;
     message.innerText = state.message;
 
@@ -268,7 +304,7 @@ const draw = () => {
     // Ground
     ctx.save()
     ctx.beginPath();
-    const steps = canvas.width >> 3;
+    const steps = canvas.width >> 2;
     for (let i = 0; i <= steps; i++) {
         const x = i / steps;
         const p = screenToWorld({ x, y: 0 });
@@ -300,7 +336,7 @@ const draw = () => {
     ctx.restore(); // Ground clip
 
     // Drag direction
-    const drag = Vec.limit(Vec.subtract(input.dragEnd, input.dragStart), .8);
+    const drag = Vec.limit(Vec.subtract(input.dragEnd, input.dragStart), player.jump.limit);
     const showDrag = !state.won && player.grounded && Vec.length(drag) > .01;
     if (showDrag) {
         ctx.save();
@@ -379,7 +415,7 @@ const draw = () => {
         ctx.save();
         ctx.fillStyle = colors[0];
         let { pos } = player;
-        let vel = Vec.scale(drag, player.jump);
+        let vel = Vec.scale(drag, player.jump.force);
         const dt = .5 / Vec.length(vel);
         let dist = .1;
         for (let i = 0; i < 10; i++) {
@@ -453,12 +489,24 @@ const update = () => {
         state.wonAge += dt;
     }
 
+    // Check out of bounds
+    const ps = worldToScreen(player.pos);
+    state.outOfBounds = ps.x < 0 || ps.x > 1 || ps.y < 0 || ps.y > 1;
+    if (state.outOfBounds) {
+        state.outOfBoundsAge += dt;
+        if (!state.won && state.outOfBoundsAge > 2) {
+            retryHole();
+        }
+    } else {
+        state.outOfBoundsAge = 0;
+    }
+
     // Check if player has stopped on ground
     player.grounded = player.pos.y >= ground(player.pos.x)
         && Vec.length(player.vel) * dt < .01;
 
     // Detect dive
-    player.diving = !player.grounded && input.primary;
+    player.diving = !state.won && !player.grounded && input.primary;
     player.gravity = player.diving ? 30 : 10;
     player.physics.bounce = player.diving ? .9 : 0;
     player.physics.friction = player.diving ? 1 : 0;
@@ -466,10 +514,10 @@ const update = () => {
 
     // Detect drag
     if (!input.primary) {
-        const drag = Vec.subtract(input.dragEnd, input.dragStart);
+        const drag = Vec.limit(Vec.subtract(input.dragEnd, input.dragStart), player.jump.limit);
         if (!state.won && player.grounded && Vec.length(drag) > .02) {
-            state.strokes++;
-            player.vel = Vec.add(player.vel, Vec.scale(drag, player.jump));
+            state.jumps++;
+            player.vel = Vec.add(player.vel, Vec.scale(drag, player.jump.force));
         }
         input.dragStart = input.dragEnd = Vec.zero();
     }
