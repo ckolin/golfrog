@@ -213,52 +213,52 @@ const startHole = (h) => {
     state.wonAge = 0;
     entities = [flag, player];
     if (h === 1) {
+        state.message = "Drag to jump";
         player.pos = { x: Math.PI / 2, y: 0 };
         flag.pos = { x: 2.5 * Math.PI, y: 0 };
-        state.message = "Drag to jump";
         ground = (x) => .8 - .5 * Math.sin(x);
     } else if (h === 2) {
+        state.message = "Collect stars\n (if you like)";
         player.pos = { x: Math.PI / 2, y: 0 };
         flag.pos = { x: 2.5 * Math.PI, y: 0 };
-        state.message = "Collect stars\n (if you like)";
         entities.push(createStar({ x: 3, y: -1.8 }));
         entities.push(createStar({ x: 4.5, y: -2.3 }));
         entities.push(createStar({ x: 6, y: -1.8 }));
         entities.push(createCloud({ x: 5.5, y: -3.5 }));
         ground = (x) => .8 - .9 * Math.sin(x) - .8 * Math.sin(.2 * x);
     } else if (h === 3) {
+        state.message = "Hold during jump to bounce";
         player.pos = { x: Math.PI / 2, y: 1 };
         flag.pos = { x: 2.5 * Math.PI, y: 0 };
-        state.message = "Hold during jump to bounce";
         entities.push(createStar({ x: 4, y: 1.3 }));
         ground = (x) => 1 + .5 * Math.exp(-1 * (x - 4.5) ** 2);
     } else if (h === 4) {
+        state.message = "Try to roll with it";
         camera.pos = { x: 4, y: -2 };
         camera.size = 15;
         player.pos = { x: -2, y: 1 };
         flag.pos = { x: 7.5, y: 0 };
-        state.message = "Try to roll with it";
         entities.push(createStar({ x: .5, y: .2 }));
         entities.push(createStar({ x: 2.5, y: .6 }));
         entities.push(createStar({ x: 4.5, y: -.2 }));
         ground = (x) => .5 * Math.sin(x) + .5 * Math.sin(.5 * x);
     } else if (h === 5) {
+        state.message = "Can you do it in one jump?";
         camera.pos = { x: 5.5, y: -2 };
         camera.size = 13;
         player.pos = { x: 1, y: 1 };
         flag.pos = { x: 5.8, y: 0 };
-        state.message = "Can you do it in one jump?";
         entities.push(createStar({ x: 7, y: -1.5 }));
         entities.push(createStar({ x: 9, y: .5 }));
         entities.push(createCloud({ x: -1, y: -3 }));
         entities.push(createCloud({ x: 10, y: -4 }));
         ground = (x) => .7 * Math.sin(x) + .5 * Math.sin(.5 * x - Math.PI);
     } else if (h === 6) {
+        state.message = "Precision is key";
         camera.pos = { x: 6.5, y: -3.5 };
         camera.size = 13;
         player.pos = { x: 1, y: 1 };
         flag.pos = { x: 10, y: 0 };
-        state.message = "Precision is key";
         entities.push(createStar({ x: 3, y: -5.5 }));
         entities.push(createCloud({ x: 1.5, y: -3.5 }));
         entities.push(createCloud({ x: 11.5, y: -3.3 }));
@@ -651,7 +651,7 @@ document.addEventListener("pointermove", (e) => {
     }
 });
 document.addEventListener("pointerup", () => {
-    input.primary = false
+    input.primary = false;
 });
 document.addEventListener("pointercancel", () => {
     input.primary = false;
