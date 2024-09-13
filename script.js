@@ -184,7 +184,7 @@ const createStar = (pos) => ({
 });
 
 const state = {
-    hole: 10, // TODO
+    hole: 11, // TODO
     jumps: 0,
     totalJumps: 0,
     stars: 0,
@@ -305,6 +305,16 @@ const startHole = (h) => {
         entities.push(createStar({ x: 8.5, y: 0 }));
         entities.push(createCloud({ x: 9, y: -3 }));
         ground = (x) => - 1.5 * Math.exp(-2 * x ** 2) + 3 * (1 + Math.exp(-2 * x + 10)) ** -1 + Math.exp(-5 * (x - 10) ** 2);
+    } else if (h === 11) {
+        state.message = "Uphill race";
+        camera.pos = { x: 0, y: -5 };
+        camera.size = 15;
+        player.pos = { x: 0, y: 1 };
+        flag.pos = { x: -5.5, y: 0 };
+        entities.push(createStar({ x: 3, y: -1.2 }));
+        entities.push(createStar({ x: -1, y: -7 }));
+        entities.push(createCloud({ x: 1, y: -7 }));
+        ground = (x) => -.12 * x ** 2 + .1 * Math.sin(2 * x);
     }
 };
 
@@ -565,7 +575,7 @@ const update = () => {
     }
 
     // Win condition
-    if (Vec.distance(player.pos, flag.pos) < .5) {
+    if (!state.won && Vec.distance(player.pos, flag.pos) < .5) {
         const pos = Vec.add(flag.pos, { x: 0, y: -.2 });
         for (let i = 0; i < 50; i++) {
             const vel = Vec.scale(
@@ -590,7 +600,6 @@ const update = () => {
                 },
             });
         }
-        flag.pos = Vec.add(flag.pos, { x: 10, y: 0 });
         state.won = true;
     }
 
