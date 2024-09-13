@@ -14,7 +14,6 @@ body {
 canvas {
 	position: absolute;
 	touch-action: none;
-	border-radius: 5%;
 	box-shadow: 2vmin 2vmin 4vmin rgba(0, 0, 0, 0.3);
 	animation: 1s ease-out 1 fadeIn;
 }
@@ -24,6 +23,13 @@ canvas {
 	flex-direction: column;
 	position: absolute;
 	color: #fff8;
+	background: #0000;
+	transition: background-color 1s;
+}
+
+canvas,
+#overlay {
+	border-radius: 5%;
 }
 
 #hud {

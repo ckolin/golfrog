@@ -225,8 +225,8 @@ const startHole = (h) => {
         player.pos = { x: Math.PI / 2, y: 1 };
         flag.pos = { x: 2.5 * Math.PI, y: 0 };
         state.message = "Hold during jump to bounce";
-        entities.push(createStar({ x: 4, y: 1 }));
-        ground = (x) => 1 - .3 * Math.sin(x);
+        entities.push(createStar({ x: 4, y: 1.3 }));
+        ground = (x) => 1 + .5 * Math.exp(-1 * (x - 4.5) ** 2);
     }
 };
 
@@ -249,6 +249,7 @@ const draw = () => {
     // Menu
     const showMenu = state.won && state.wonAge > 1;
     menu.style.display = showMenu ? "block" : "none";
+    overlay.style.background = showMenu ? "#0008" : "#0000";
 
     // Screen coordinates
     ctx.save();
@@ -460,6 +461,7 @@ const update = () => {
     player.diving = !player.grounded && input.primary;
     player.gravity = player.diving ? 30 : 10;
     player.physics.bounce = player.diving ? .9 : 0;
+    player.physics.friction = player.diving ? 1 : 0;
     player.shapes = player.diving ? playerCircle : playerTriangle;
 
     // Detect drag
