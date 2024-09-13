@@ -11,21 +11,24 @@ body {
 canvas {
 	position: absolute;
 	touch-action: none;
-	border-radius: 4vmin;
-	box-shadow: 1vmin 1vmin 4vmin rgba(0, 0, 0, 0.3);
+	border-radius: 5%;
+	box-shadow: 2vmin 2vmin 4vmin rgba(0, 0, 0, 0.3);
 	animation: 1s ease-out 1 fadeIn;
 }
 
 #overlay {
-	display: flex;
-	justify-content: space-between;
 	position: absolute;
-	pointer-events: none;
-	color: #fff9;
-	padding: 3vmin;
+	color: #fff8;
 	font-family: Bahnschrift, "DIN Alternate", "Franklin Gothic Medium", "Nimbus Sans Narrow", sans-serif-condensed, sans-serif;
 	text-transform: uppercase;
-	font-size: 3vmin;
+	pointer-events: none;
+	user-select: none;
+}
+
+#overlay div {
+	display: flex;
+	justify-content: space-between;
+	padding: 4%;
 }
 
 p {

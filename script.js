@@ -590,6 +590,7 @@ const resize = () => {
         canvas.style.left = `${(window.innerWidth - canvas.width) / 2}px`;
     overlay.style.top =
         canvas.style.top = `${(window.innerHeight - canvas.height) / 2}px`;
+    overlay.style.fontSize = `${.04 * canvas.width}px`;
 };
 window.addEventListener("resize", resize);
 
