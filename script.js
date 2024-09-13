@@ -184,7 +184,7 @@ const createStar = (pos) => ({
 });
 
 const state = {
-    hole: 6, // TODO
+    hole: 7, // TODO
     jumps: 0,
     totalJumps: 0,
     stars: 0,
@@ -263,6 +263,16 @@ const startHole = (h) => {
         entities.push(createCloud({ x: 1.5, y: -3.5 }));
         entities.push(createCloud({ x: 11.5, y: -3.3 }));
         ground = (x) => .7 - 3 * Math.exp(-.5 * (x - 4.5) ** 2) - 6 * Math.exp(-.5 * (x - 10) ** 2);
+    } else if (h === 7) {
+        state.message = "Stop, drop & roll";
+        camera.pos = { x: 6, y: -2.5 };
+        camera.size = 12;
+        player.pos = { x: 1, y: 1 };
+        flag.pos = { x: 10.5, y: 0 };
+        entities.push(createStar({ x: 7, y: .4 }));
+        entities.push(createStar({ x: 9, y: -1 }));
+        entities.push(createCloud({ x: 3.5, y: -3.5 }));
+        ground = (x) => .7 - 3 * Math.exp(-.5 * (x - 4.5) ** 2) - 4 * Math.exp(-.4 * (x - 10.5) ** 2);
     }
 };
 
