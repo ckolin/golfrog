@@ -25,6 +25,7 @@ canvas {
 	color: #fff8;
 	background: #0000;
 	transition: background-color 1s;
+	pointer-events: none;
 }
 
 canvas,
@@ -36,7 +37,6 @@ canvas,
 	display: flex;
 	justify-content: space-between;
 	padding: 4%;
-	pointer-events: none;
 }
 
 p {
@@ -68,6 +68,7 @@ button {
 	font-size: 180%;
 	cursor: pointer;
 	transition: background-color 100ms;
+	pointer-events: all;
 }
 
 button:active {
